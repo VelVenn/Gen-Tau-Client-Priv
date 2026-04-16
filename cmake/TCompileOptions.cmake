@@ -1,7 +1,19 @@
 # =========================== ENABLE SANITIZER ===========================
 option(GEN_TAU_USE_ASAN "Enable address sanitizer for all gen-τ targets" OFF)
 option(GEN_TAU_USE_TYPE_SAN "Enable type sanitizer for all gen-τ targets" OFF)
-option(GEN_TAU_SAN_OPT_LEVEL "Optimization level for address sanitizer builds (default: O0)" O0)
+
+set(GEN_TAU_SAN_OPT_LEVEL "O0" CACHE STRING "Optimization level for sanitizer builds")
+set_property(
+  CACHE GEN_TAU_SAN_OPT_LEVEL PROPERTY STRINGS 
+  O0 O1 O2 O3 Og Os Oz Ofast
+)
+
+if(NOT GEN_TAU_SAN_OPT_LEVEL MATCHES "^(O0|O1|O2|O3|Og|Os|Oz|Ofast)$")
+  message(
+    FATAL_ERROR
+    "!! Invalid GEN_TAU_SAN_OPT_LEVEL='${GEN_TAU_SAN_OPT_LEVEL}'. Allowed values are: O0, O1, O2, O3, Og, Os, Oz, Ofast !!"
+  )
+endif()
 
 if(GEN_TAU_USE_ASAN AND GEN_TAU_USE_TYPE_SAN)
   message(FATAL_ERROR "!! Cannot enable both Address Sanitizer and Type Sanitizer at the same time !!")
