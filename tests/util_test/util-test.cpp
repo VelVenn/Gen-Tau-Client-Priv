@@ -51,6 +51,14 @@ void recv_func(function<void(int)> functor)
 	functor(1919);
 }
 
+int type_alias_test(float *f, int *i)
+{
+	*i = 42;
+	*f = 1.14f;
+
+	return *i;
+}
+
 int main()
 {
 	tImgTransLogTrace("This is a TRACE log message.");
@@ -93,6 +101,15 @@ int main()
 	if (gentau::anyFalse(str_arr)) { cout << "Any False!" << endl; }
 
 	spdlog::shutdown();
+
+	int *e = new int[100];
+	
+	char ch = 255;
+
+	int f = 0;
+	cout << "Before type alias test, f: " << f << endl;
+	int res = type_alias_test(reinterpret_cast<float*>(&f), &f);
+	cout << "After type alias test, f: " << f << ", res: " << res << endl;
 
 	return 0;
 }
