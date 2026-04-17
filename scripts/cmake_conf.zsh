@@ -46,7 +46,7 @@ while [[ "$#" -gt 0 ]]; do
         -T|--build-test)       DO_TEST=1     ;;
         
         -h|--help)      
-            echo "Usage: $0 [options]"
+            echo "Usage: $0 [[option [value]]...]"
             echo ""
             echo "Configuration Options:"
             echo "  -S, --src-dir DIR      Set source directory (default: .)"
@@ -64,7 +64,7 @@ while [[ "$#" -gt 0 ]]; do
             echo "  -T, --build-test       Build tests (default: off)"
             echo "  -m, --asan             Enable address sanitizer (default: off)"
             echo "  --ty-san               Enable type sanitizer (default: off)"
-            echo "  --so                   Optimization level for sanitizer (default: O0)"
+            echo "  --so LEVEL             Optimization level for sanitizer [O0|O1|O2|O3|Og|Os|Oz|Ofast] (default: O0)"
             echo "  -n, --no-log           Disable all logging (default: off)"
             echo "  --no-log-file          Disable log file output (default: off)"
             echo "  --no-log-cons          Disable log console output (default: off)"
