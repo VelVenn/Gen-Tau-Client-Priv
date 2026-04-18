@@ -7,6 +7,7 @@
 #include <memory>
 #include <shared_mutex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -45,8 +46,8 @@ class TMqttClient : std::enable_shared_from_this<TMqttClient>
 
 	TopicRegister topicRegister;
 
-	std::string clientId;
-	std::string serverURI;
+	const std::string clientId;
+	const std::string serverURI;
 
 	std::shared_mutex topicRegMtx;
 
@@ -60,6 +61,21 @@ class TMqttClient : std::enable_shared_from_this<TMqttClient>
 
   private:
 	void subscribeAll();
+
+  public:
+	/**
+	 * @brief Get the Client Id
+	 * 
+	 * @note MT-SAFE
+	 */
+	std::string_view getClientId() const { return clientId; }
+
+	/**
+	 * @brief Get the Server URI
+	 * 
+	 * @note MT-SAFE
+	 */
+	std::string_view getServerURI() const { return serverURI; }
 
   public:
 	/**

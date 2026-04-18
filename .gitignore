@@ -110,6 +110,11 @@ Testing/
 *version.hpp
 *version.h
 
+# Generated Qt protobuf files 
+*.qpb.h
+*_qtprotoreg.cpp
+*.qpb.cpp
+
 # IDE specific ignores
 .vscode/
 .idea/

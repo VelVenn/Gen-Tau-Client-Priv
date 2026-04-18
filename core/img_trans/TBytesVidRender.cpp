@@ -210,7 +210,7 @@ bool TBytesVidRender::initPipeElements()
 	bool linkDynamic = false;
 
 	fixedPipe                 = gst_pipeline_new("bPipe");
-	fixedSrc                  = gst_element_factory_make("appsink", "bSrc");
+	fixedSrc                  = gst_element_factory_make("appsrc", "bSrc");
 	ElemRawPtr parser         = gst_element_factory_make("h265parse", "bParser");
 	ElemRawPtr bufferQueue    = gst_element_factory_make("queue", "bBufferQueue");
 	ElemRawPtr decoder        = choosePrefDecoder(linkDynamic);
@@ -376,7 +376,7 @@ TBytesVidRender::~TBytesVidRender()
 	}
 }
 
-bool TBytesVidRender::tryPushFrame(span<u8> frameData)
+bool TBytesVidRender::tryPushFrame(span<const u8> frameData)
 {
 	if (!fixedPipe || !fixedSrc) {
 		tImgTransLogError("Push frame failed: Pipeline is not initialized.");

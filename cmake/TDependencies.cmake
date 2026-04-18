@@ -5,6 +5,8 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS
   Qml
   QmlModels
   QmlWorkerScript
+  Protobuf
+  ProtobufQuick
 )
 find_package(PkgConfig REQUIRED)
 

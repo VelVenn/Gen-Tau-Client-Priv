@@ -66,7 +66,7 @@ class TBytesVidRender : public std::enable_shared_from_this<TBytesVidRender>
 	GstElement* sink() { return this->fixedSink; }
 
   public:
-	bool tryPushFrame(std::span<u8> frameData);
+	bool tryPushFrame(std::span<const u8> frameData);
 
   public:
 	/** 

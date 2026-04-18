@@ -272,7 +272,12 @@ function(gt_register_test)
 
   # 创建可执行文件目标
   if(GT_TEST_USE_QT)
-    qt_add_executable(${GT_TEST_NAME} ${GT_TEST_SRC})
+    if(GT_TEST_INC)
+      file(GLOB_RECURSE QT_TEST_HEADERS ${GT_TEST_INC}/*.h ${GT_TEST_INC}/*.hpp)
+      qt_add_executable(${GT_TEST_NAME} ${GT_TEST_SRC} ${QT_TEST_HEADERS})
+    else()
+      qt_add_executable(${GT_TEST_NAME} ${GT_TEST_SRC})
+    endif()
 
     if(GT_TEST_QML_FILES)
       if(NOT GT_TEST_QML_URI)
@@ -294,6 +299,13 @@ function(gt_register_test)
     endif()
 
     add_executable(${GT_TEST_NAME} ${GT_TEST_SRC})
+  endif()
+  # ===============
+
+  # 设置头文件目录
+  if(GT_TEST_INC)
+    target_include_directories(${GT_TEST_NAME} PRIVATE ${GT_TEST_INC})
+    message(STATUS "gt_register_test -> ${GT_TEST_NAME}: Header directories specified as '${GT_TEST_INC}'")
   endif()
   # ===============
 
@@ -321,13 +333,6 @@ function(gt_register_test)
 
   if(GT_TEST_INTERFACE_COM_OPTS)
     target_compile_options(${GT_TEST_NAME} INTERFACE ${GT_TEST_INTERFACE_COM_OPTS})
-  endif()
-  # ===============
-
-  # 设置头文件目录
-  if(GT_TEST_INC)
-    target_include_directories(${GT_TEST_NAME} PRIVATE ${GT_TEST_INC})
-    message(STATUS "gt_register_test -> ${GT_TEST_NAME}: Header directories specified as '${GT_TEST_INC}'")
   endif()
   # ===============
 
