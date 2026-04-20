@@ -369,6 +369,8 @@ TBytesVidRender::TBytesVidRender(u64 _maxBufferBytes)
 
 TBytesVidRender::~TBytesVidRender()
 {
+	tImgTransLogInfo("Pipeline resources released, render destroyed.");
+
 	if (fixedPipe) {
 		gst_element_set_state(fixedPipe, GST_STATE_NULL);
 		gst_object_unref(fixedPipe);
@@ -386,12 +388,12 @@ bool TBytesVidRender::tryPushFrame(span<const u8> frameData)
 	auto curBytes = gst_app_src_get_current_level_bytes(GST_APP_SRC(fixedSrc));
 	auto limit    = maxBufferBytes.load();
 	if (curBytes > limit) {
-		tImgTransLogWarn(
-			"Current buffer level '{}' bytes exceeds the maximum threshold of '{}' bytes, skipping "
-			"frame push.",
-			curBytes,
-			limit
-		);
+		// tImgTransLogWarn(
+		// 	"Current buffer level '{}' bytes exceeds the maximum threshold of '{}' bytes, skipping "
+		// 	"frame push.",
+		// 	curBytes,
+		// 	limit
+		// );
 		return false;
 	}
 

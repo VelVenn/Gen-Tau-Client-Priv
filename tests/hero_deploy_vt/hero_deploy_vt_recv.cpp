@@ -8,6 +8,8 @@
 
 #include <QQmlContext>
 
+#include <iostream>
+
 #include <span>
 
 #define T_LOG_TAG "[Hero VDT VM] "
@@ -59,6 +61,12 @@ void VTRecv::initRecv()
 			reinterpret_cast<const u8*>(vidPkt.data()), static_cast<size_t>(vidPkt.size())
 		);
 
+		for (int i = 0; i < 10; i++) {
+			cerr << hex << static_cast<int>(frame[i]) << " ";
+		}
+		cerr << endl;
+		// cerr << dec << endl;
+
 		_bVidRend->tryPushFrame(frame);
 	});
 
@@ -86,6 +94,8 @@ void VTRecv::clientSwitchHandler(QQmlEngine& engine, const QString& newId)
 		for (auto& conn : oldRecv->connList) { conn.disconnect(); }
 	}
 	oldRecv->_client.reset();
+
+	oldRecv->_bVidRend->flush(); // 清空渲染管线的旧数据，等待新的配置信息
 
 	auto* newRecv = new VTRecv(
 		oldRecv->_bVidRend, TMqttClient::create(newId.toStdString(), CLIENT_URI), &engine

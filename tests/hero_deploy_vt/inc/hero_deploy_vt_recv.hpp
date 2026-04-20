@@ -13,7 +13,7 @@
 #include "img_trans/vid_render/TBytesVidRender.hpp"
 #include "utils/TSignal.hpp"
 
-#define CLIENT_URI ("mqtt://localhost:3333")
+#define CLIENT_URI ("mqtt://127.0.0.1:3333")
 
 class VTRecv : public QObject
 {

@@ -1,5 +1,5 @@
-#include <qnamespace.h>
-#include <qobject.h>
+#include <qprotobufserializer.h>
+#include <qt6/QtCore/qcontainerfwd.h>
 #include "comm/TMqttClient.hpp"
 #include "hero_deploy_vt_recv.hpp"
 
@@ -7,22 +7,31 @@
 
 #include "utils/TLog.hpp"
 
+#include "hdvt.qpb.h"
+
 #include <QGuiApplication>
 #include <QObject>
+#include <QProtobufSerializer>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QRunnable>
 
+#include <chrono>
+#include <fstream>
+#include <thread>
+
 #define T_LOG_TAG "[Hero DVT Test] "
 
 using namespace std;
+using namespace std::chrono;
+using namespace std::chrono_literals;
 using namespace gentau;
 
 class InitGLCtx : public QRunnable
 {
-	TBytesVidRender::SharedPtr bVidRend;
+	TBytesVidRender* bVidRend;
 
   public:
 	void run() override
@@ -38,7 +47,74 @@ class InitGLCtx : public QRunnable
 		}
 	}
 
-	InitGLCtx(TBytesVidRender::SharedPtr _bVidRend) : bVidRend(std::move(_bVidRend)) {};
+	InitGLCtx(TBytesVidRender* _bVidRend) : bVidRend(_bVidRend) {};
+};
+
+class TestSender
+{
+  private:
+	TMqttClient::SharedPtr client;
+
+	QProtobufSerializer serializer;
+
+	const steady_clock::duration inv = 20ms;
+
+	std::jthread txThread;
+
+  private:
+	void initTxThread()
+	{
+		if (!client) {
+			tLogError("Test sender's client is invalid");
+			return;
+		}
+
+		txThread = std::jthread([&](stop_token st) mutable {
+			auto next_time = steady_clock::now();
+
+			ifstream txFile("./res/raw_sintel_1080p_stream.h265");
+
+			if (!txFile) {
+				tLogCritical("Unable to open video stream file for sending");
+				return;
+			}
+
+			constexpr size_t CHUNK_SZ = 8192;
+			QByteArray       buffer(CHUNK_SZ, 0);
+
+			while (!st.stop_requested()) {
+				next_time += inv;
+				std::this_thread::sleep_until(next_time);
+
+				if (!txFile.read(reinterpret_cast<char*>(buffer.data()), CHUNK_SZ) ||
+					!(txFile.gcount() > 0)) {
+					break;
+				}
+
+				Gentau::Topics::CustomByteBlock msg;
+
+				msg.setData(
+					QByteArray(buffer.constData(), static_cast<qsizetype>(txFile.gcount()))
+				);
+
+				try {
+					auto payload = serializer.serialize(&msg);
+					client->publish("CustomByteBlock", payload.toStdString());
+					// tLogInfo("Published");
+				} catch (const exception& e) {
+					tLogError("Error when publishing video stream: {}", e.what());
+				}
+			}
+
+			tLogInfo("End of video stream");
+		});
+	}
+
+  public:
+	void startPub() { initTxThread(); }
+
+  public:
+	TestSender() : client(TMqttClient::create("1145", CLIENT_URI)) { client->connect(); }
 };
 
 int main(int argc, char* argv[])
@@ -65,7 +141,7 @@ int main(int argc, char* argv[])
 
 	TBytesVidRender::SharedPtr bVidRend;
 	try {
-		bVidRend = TBytesVidRender::create();
+		bVidRend = TBytesVidRender::create(262'144);
 	} catch (const exception& e) {
 		tLogCritical("Fatal error during bytes vid render init: {}", e.what());
 		return -1;
@@ -80,7 +156,8 @@ int main(int argc, char* argv[])
 		Qt::QueuedConnection
 	);
 
-	auto vtRecv = new VTRecv(bVidRend, TMqttClient::create("1", CLIENT_URI), &engine);
+	auto vtRecv = new VTRecv(bVidRend, TMqttClient::create("101", CLIENT_URI), &engine);
+	TestSender testSender;
 
 	QObject::connect(
 		vtRecv,
@@ -103,7 +180,11 @@ int main(int argc, char* argv[])
 	}
 	bVidRend->linkSinkWidget(videoItem);
 
-	rootObject->scheduleRenderJob(new InitGLCtx(bVidRend), QQuickWindow::BeforeSynchronizingStage);
+	rootObject->scheduleRenderJob(
+		new InitGLCtx(bVidRend.get()), QQuickWindow::BeforeSynchronizingStage
+	);
+
+	testSender.startPub();
 
 	return app.exec();
 }
