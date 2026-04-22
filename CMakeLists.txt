@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(TCompileOptions)
+
 project(gen_tau_client VERSION 0.1.0 LANGUAGES CXX)
 
 # ============================ GEN_TAU CMAKE MODULES =============================
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
 include(TProjOptions)
 include(TProjSettings)
-include(TCompileOptions)
 include(TDependencies)
 include(TRegister)
 include(TExtraInfo)

@@ -1,8 +1,5 @@
-#include "img_trans/vid_render/TVidRender.hpp"
+#include "img_trans/vid_render/TBytesVidRender.hpp"
 
-#include "conf/version.hpp"
-
-#include "img_trans/vid_render/TFramePool.hpp"
 #include "utils/TLog.hpp"
 #include "utils/TLogical.hpp"
 
@@ -18,24 +15,16 @@
 #include <utility>
 #include <vector>
 
-#define T_LOG_TAG_IMG       "[Video Render] "
-#define RENDER_WAIT_FOREVER (0 && GEN_TAU_DEBUG)
-#define ENABLE_PTS          0
+#define T_LOG_TAG_IMG "[Video Render Bytes] "
 
 using namespace std;
-using namespace std::string_view_literals;
-namespace gentau {
-#if RENDER_WAIT_FOREVER == 1
-constexpr gint64 MAX_RENDER_DELAY = -1;
-#else
-constexpr auto MAX_RENDER_DELAY = 25 * GST_MSECOND;
-#endif
 
-void TVidRender::onDecoderPadAdded(GstElement* decoder, GstPad* new_pad, gpointer user_data)
+namespace gentau {
+void TBytesVidRender::onDecoderPadAdded(GstElement* decoder, GstPad* new_pad, gpointer user_data)
 {
-	TVidRender* self               = static_cast<TVidRender*>(user_data);
-	g_autoptr(GstElement) uploader = gst_bin_get_by_name(GST_BIN(self->fixedPipe), "uploader");
-	g_autoptr(GstPad) sink_pad     = gst_element_get_static_pad(uploader, "sink");
+	TBytesVidRender* self          = static_cast<TBytesVidRender*>(user_data);
+	g_autoptr(GstElement) uploader = gst_bin_get_by_name(GST_BIN(self->fixedPipe), "bUploader");
+	g_autoptr(GstPad) sink_pad     = gst_element_get_static_pad(uploader, "bSink");
 
 	GstPadLinkReturn ret;
 	g_autoptr(GstCaps) new_pad_caps = nullptr;
@@ -71,20 +60,20 @@ void TVidRender::onDecoderPadAdded(GstElement* decoder, GstPad* new_pad, gpointe
 	}
 }
 
-GstElement* TVidRender::choosePrefDecoder(bool& isDynamic)
+GstElement* TBytesVidRender::choosePrefDecoder(bool& isDynamic)
 {
 	vector<const gchar*> candidates = {
 #ifdef __linux__
-		"nvh265dec",     // Nvidia
-		"vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
-		"vaapih265dec",  // VA-API
+		// "nvh265dec",     // Nvidia
+		// "vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
+		// "vaapih265dec",  // VA-API // Use soft decode for stable
 #elif defined(WIN32)
 		"nvh265dec",     // Nvidia
 		"d3d12h265dec",  // D3D12
 		"d3d11h265dec",  // D3D11
 		"qsvh265dec",    // QuickSync (Intel)
 #elif defined(__APPLE__)
-		"vtdec_hw",      // General VideoToolbox hardware decoder
+		"vtdec_hw",  // General VideoToolbox hardware decoder
 		"vtdec",
 #endif
 		"avdec_h265",  // FFMPEG software decoder as fallback
@@ -94,7 +83,7 @@ GstElement* TVidRender::choosePrefDecoder(bool& isDynamic)
 		g_autoptr(GstElementFactory) factory = gst_element_factory_find(name);
 		if (factory) {
 			// Further verify for gstreamer plugin blacklist
-			GstElement* element = gst_element_factory_create(factory, "decoder");
+			GstElement* element = gst_element_factory_create(factory, "bDecoder");
 
 			if (element) {
 				tImgTransLogTrace("Selected H.265 Decoder: '{}'", name);
@@ -107,10 +96,10 @@ GstElement* TVidRender::choosePrefDecoder(bool& isDynamic)
 	tImgTransLogWarn("No preferred decoder found, falling back to software decodebin.");
 
 	isDynamic = true;
-	return gst_element_factory_make("decodebin", "decoder");
+	return gst_element_factory_make("decodebin", "bDecoder");
 }
 
-bool TVidRender::initBusThread()
+bool TBytesVidRender::initBusThread()
 {
 	if (!pipeline()) {
 		constexpr auto errMsg = "Pipeline is not initialized, cannot start bus thread."sv;
@@ -199,7 +188,8 @@ bool TVidRender::initBusThread()
 				}
 				default:
 					tImgTransLogWarn(
-						"Something weird happened, it should never goto busThread's default branch "
+						"Something weird happened, it should never goto busThread's default "
+						"branch "
 						"..."
 					);  // Should never reach here
 			}
@@ -216,26 +206,27 @@ bool TVidRender::initBusThread()
 	return true;
 }
 
-bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
+bool TBytesVidRender::initPipeElements()
 {
-	bool         linkDynamic = false;
-	const gchar* srcType     = useFileSrc ? "filesrc" : "appsrc";
+	bool linkDynamic = false;
 
-	fixedPipe                 = gst_pipeline_new("pipeline");
-	fixedSrc                  = gst_element_factory_make(srcType, "src");
-	ElemRawPtr parser         = gst_element_factory_make("h265parse", "parser");
-	ElemRawPtr bufferQueue    = gst_element_factory_make("queue", "bufferQueue");
-	ElemRawPtr decoder        = choosePrefDecoder(linkDynamic);
-	ElemRawPtr leakyQueue     = gst_element_factory_make("queue", "leakyQueue");
-	ElemRawPtr colorConv      = gst_element_factory_make("glcolorconvert", "colorConv");
-	ElemRawPtr uploader       = gst_element_factory_make("glupload", "uploader");
-	ElemRawPtr sinkCapsFilter = gst_element_factory_make("capsfilter", "sinkCapsFilter");
-	fixedSink                 = gst_element_factory_make("qml6glsink", "sink");
+	fixedPipe                  = gst_pipeline_new("bPipe");
+	fixedSrc                   = gst_element_factory_make("appsrc", "bSrc");
+	ElemRawPtr parser          = gst_element_factory_make("h265parse", "bParser");
+	ElemRawPtr parseCapsFilter = gst_element_factory_make("capsfilter", "bParseCapsFilter");
+	ElemRawPtr bufferQueue     = gst_element_factory_make("queue", "bBufferQueue");
+	ElemRawPtr decoder         = choosePrefDecoder(linkDynamic);
+	ElemRawPtr leakyQueue      = gst_element_factory_make("queue", "bLeakyQueue");
+	ElemRawPtr colorConv       = gst_element_factory_make("glcolorconvert", "bColorConv");
+	ElemRawPtr uploader        = gst_element_factory_make("glupload", "bUploader");
+	ElemRawPtr sinkCapsFilter  = gst_element_factory_make("capsfilter", "bSinkCapsFilter");
+	fixedSink                  = gst_element_factory_make("qml6glsink", "bSink");
 
 	if (anyFalse(
 			fixedPipe,
 			fixedSrc,
 			parser,
+			parseCapsFilter,
 			decoder,
 			bufferQueue,
 			uploader,
@@ -247,6 +238,7 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 		for (auto elem : { fixedPipe,
 						   fixedSrc,
 						   parser,
+						   parseCapsFilter,
 						   decoder,
 						   bufferQueue,
 						   uploader,
@@ -266,6 +258,7 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 		GST_BIN(fixedPipe),
 		fixedSrc,
 		parser,
+		parseCapsFilter,
 		decoder,
 		bufferQueue,
 		uploader,
@@ -284,13 +277,13 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 				gst_element_link_many(
 					uploader, colorConv, sinkCapsFilter, leakyQueue, fixedSink, nullptr
 				),
-				gst_element_link_many(fixedSrc, parser, bufferQueue, decoder, nullptr)
+				gst_element_link_many(
+					fixedSrc, parser, parseCapsFilter, bufferQueue, decoder, nullptr
+				)
 			)) {
 			gst_object_unref(fixedPipe);
 			tImgTransLogCritical("{}", errMsg);
-			throw std::runtime_error(
-				errMsg.data()
-			);  // string_view 仅在从字符串字面量构建时，才保证以 \0 结尾
+			throw std::runtime_error(errMsg.data());
 		}
 
 		g_signal_connect(decoder, "pad-added", G_CALLBACK(onDecoderPadAdded), this);
@@ -299,6 +292,7 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 		if (!gst_element_link_many(
 				fixedSrc,
 				parser,
+				parseCapsFilter,
 				bufferQueue,
 				decoder,
 				uploader,
@@ -315,55 +309,44 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 		tImgTransLogTrace("Decoder will be linked statically");
 	}
 
-	g_object_set(fixedSink, "sync", FALSE, "max-lateness", MAX_RENDER_DELAY, nullptr);
-	if (useFileSrc) {
-		g_object_set(fixedSrc, "location", filePath, nullptr);
-	} else {
-		// 指定appsrc的caps属性('video/x-265')可能会导致h265parse在解析时更严格，从而导致播放卡死，因此暂不指定caps
-		g_object_set(
-			fixedSrc,
-			"is-live",
-			TRUE,
-			"min-latency",
-			0,  // No latency, push frames as soon as possible
-			"max-latency",
-			-1,                     // Send at best effort
-			"max-bytes",            // No effect when emit-signals is FALSE
-			(guint64)(256 * 1024),  // VT03 Module -> 1080p 60FPS max
-#if ENABLE_PTS && (ENABLE_PTS == 1)
-			"do-timestamp",
-			TRUE,
-			"format",
-			GST_FORMAT_TIME,
-#else
-			"do-timestamp",
-			FALSE,
-			"format",
-			GST_FORMAT_BYTES,
-#endif
-			"stream-type",
-			GST_APP_STREAM_TYPE_STREAM,
-			"emit-signals",
-			FALSE,
-			"block",
-			FALSE,
-			nullptr
-		);
+	g_object_set(fixedSink, "sync", FALSE, nullptr);
 
-		// 根据Gstreamer文档的建议，打timestamp和live-source通常要设置'format'为'GST_FORMAT_TIME'，
-		// 但是考虑到发送端可能是透传，设置为'GST_FORMAT_BYTES'可能更合适。这个目前来看影响不大，如果后续
-		// 发现问题再调整。
+	// 指定appsrc的caps属性('video/x-265')可能会导致h265parse在解析时更严格，从而导致播放卡死，因此暂不指定caps
+	g_object_set(
+		fixedSrc,
+		"is-live",
+		TRUE,
+		"min-latency",
+		0,  // No latency, push frames as soon as possible
+		"max-latency",
+		-1,  // Send at best effort
+		"do-timestamp",
+		FALSE,
+		"format",
+		GST_FORMAT_BYTES,
+		"stream-type",
+		GST_APP_STREAM_TYPE_STREAM,
+		"emit-signals",
+		FALSE,
+		"block",
+		FALSE,
+		nullptr
+	);
 
-		// 27/02/26 Note: 开启 PTS, 即 'do-timestamp' 为 TRUE, 会导致 MacOS 下的 VideoTookit 解码
-		// 出现严重回闪。考虑到我们的 sink 根本不关心时钟同步，因此现在暂时不开启 PTS。
+	g_object_set(parser, "config-interval", -1, "disable-passthrough", TRUE, nullptr);
 
-		// Using the appsrc
-		// Ref: https://gstreamer.freedesktop.org/documentation/application-development/advanced/pipeline-manipulation.html?gi-language=c#inserting-data-with-appsrc
-	}
+	g_autoptr(GstCaps) parseOutCaps = gst_caps_new_simple(
+		"video/x-h265",
+		"stream-format",
+		G_TYPE_STRING,
+		"byte-stream",
+		"alignment",
+		G_TYPE_STRING,
+		"au",
+		nullptr
+	);
+	g_object_set(parseCapsFilter, "caps", parseOutCaps, nullptr);
 
-	// 开启disable-passthrough会强制parse解析每一帧，理论上可以降低缺/错帧带来的影响，但也可能增加CPU负担，目前看来是否开启对管线本身对稳定性影响不大
-	// config-interval最好设置为-1，让parse在遇到关键帧时重新配置(VPS, SPS, PPS)，这个选项对管线的稳定性与恢复能力影响较大
-	g_object_set(parser, "config-interval", -1, "disable-passthrough", FALSE, nullptr);
 	g_object_set(bufferQueue, "max-size-buffers", 2, "leaky", 0, nullptr);
 	g_object_set(
 		leakyQueue,
@@ -399,32 +382,16 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 	return res;
 }
 
-TVidRender::TVidRender(const char* _filePath, u64 _maxBufferBytes, bool _enableTestMode) :
-	useFileSrc(true),
-	enableTestMode(_enableTestMode)
+TBytesVidRender::TBytesVidRender(u64 _maxBufferBytes)
 {
-	// Check in compile-time
-	if constexpr (conf::TDebugMode) {
-		initPipeElements(true, _filePath);
-		maxBufferBytes.store(_maxBufferBytes);
-	} else {
-		constexpr auto errMsg =
-			"Calling TVidRender(const char* file_path) is not supported in release builds."sv;
-		tImgTransLogCritical("{}", errMsg);
-		throw std::runtime_error(errMsg.data());
-	}
-}
-
-TVidRender::TVidRender(u64 _maxBufferBytes, bool _enableTestMode) :
-	useFileSrc(false),
-	enableTestMode(_enableTestMode)
-{
-	initPipeElements(false);
+	initPipeElements();
 	maxBufferBytes.store(_maxBufferBytes);
 }
 
-TVidRender::~TVidRender()
+TBytesVidRender::~TBytesVidRender()
 {
+	tImgTransLogInfo("Pipeline resources released, render destroyed.");
+
 	if (fixedPipe) {
 		gst_element_set_state(fixedPipe, GST_STATE_NULL);
 		gst_object_unref(fixedPipe);
@@ -432,140 +399,44 @@ TVidRender::~TVidRender()
 	}
 }
 
-bool TVidRender::__TEST_ONLY_tryPushFrame_UNSAFE_WHO_USE_WHO_SB_(TVidRender::FramePtr frame)
-{
-	if constexpr (!conf::TDebugMode) {
-		tImgTransLogError(
-			"TVidRender::tryPushFrame(TVidRender::FramePtr) method is only for "
-			"testing purpose and should not be called in non-Debug builds."
-		);
-		return false;
-	}
-
-	if (!fixedPipe || !fixedSrc) {
-		tImgTransLogError("Push frame failed: Pipeline is not initialized.");
-		return false;
-	}
-
-	if (!enableTestMode) {
-		tImgTransLogError(
-			"Push frame failed: Test mode is not enabled. This method should only be used for "
-			"testing purposes."
-		);
-		return false;
-	}
-
-	if (useFileSrc) [[unlikely]] {
-		tImgTransLogError("Push frame failed: Source element is not an appsrc.");
-		return false;
-	}
-
-	auto curBytes = gst_app_src_get_current_level_bytes(GST_APP_SRC(fixedSrc));
-	auto limit    = maxBufferBytes.load();
-	if (curBytes > limit) {
-		tImgTransLogWarn(
-			"Current buffer level '{}' bytes exceeds the maximum threshold of '{}' bytes, skipping "
-			"frame push.",
-			curBytes,
-			limit
-		);
-		return false;
-	}
-
-	auto raw_vec_ptr = frame.release();
-
-	// 2. 使用 wrapped_full，并提供一个自定义的释放回调
-	GstBuffer* buffer = gst_buffer_new_wrapped_full(
-		GST_MEMORY_FLAG_READONLY,
-		raw_vec_ptr->data(),  // 内存地址
-		raw_vec_ptr->size(),  // 内存大小
-		0,                    // 偏移
-		raw_vec_ptr->size(),  // 实际大小
-		raw_vec_ptr,          // user_data: 传入 vector 指针
-		[](gpointer data) {
-			auto p = static_cast<std::vector<u8>*>(data);
-			delete p;
-		}
-	);
-
-	if (buffer) {
-		// Push may success at GST_STATE_PAUSED or GST_STATE_PLAYING
-		auto ret = gst_app_src_push_buffer(GST_APP_SRC(fixedSrc), buffer);
-		if (ret == GST_FLOW_OK) {
-			lastPushSuccess.store(chrono::steady_clock::now());
-			return true;
-		} else {
-			tImgTransLogError(
-				"Failed to push buffer to appsrc, flow return: {}", gst_flow_get_name(ret)
-			);
-		}
-	}
-
-	return false;
-}
-
-bool TVidRender::tryPushFrame(TFramePool::FrameData&& frame, TReassemblyPasskey)
+bool TBytesVidRender::tryPushFrame(span<const u8> frameData)
 {
 	if (!fixedPipe || !fixedSrc) {
 		tImgTransLogError("Push frame failed: Pipeline is not initialized.");
 		return false;
 	}
 
-	if (useFileSrc) [[unlikely]] {
-		tImgTransLogError("Push frame failed: Source element is not an appsrc.");
-		return false;
-	}
-
 	auto curBytes = gst_app_src_get_current_level_bytes(GST_APP_SRC(fixedSrc));
 	auto limit    = maxBufferBytes.load();
 	if (curBytes > limit) {
-		tImgTransLogWarn(
-			"Current buffer level '{}' bytes exceeds the maximum threshold of '{}' bytes, skipping "
-			"frame push.",
-			curBytes,
-			limit
-		);
+		// tImgTransLogWarn(
+		// 	"Current buffer level '{}' bytes exceeds the maximum threshold of '{}' bytes, skipping "
+		// 	"frame push.",
+		// 	curBytes,
+		// 	limit
+		// );
 		return false;
 	}
 
-	auto frameDataPtr = new TFramePool::FrameData(std::move(frame));
+	if (frameData.empty()) {
+		tImgTransLogWarn("Empty frame data, ignoring it.");
 
-	if (!frameDataPtr->isValid() || !frameDataPtr->getDataLen()) {
-		tImgTransLogError("Invalid frame data, failed to push to pipeline.");
-		delete frameDataPtr;
 		return false;
 	}
 
-	GstBuffer* buffer = gst_buffer_new_wrapped_full(
-		static_cast<GstMemoryFlags>(0),  // Standard buffer, can be writable(?)
-		frameDataPtr->data(),
-		TFramePool::slotLen,
-		0,
-		frameDataPtr->getDataLen(),
-		frameDataPtr,
-		[](gpointer data) { delete static_cast<TFramePool::FrameData*>(data); }
-	);
-
-	if (buffer) {
-		// Push may success at GST_STATE_PAUSED or GST_STATE_PLAYING
-		auto ret = gst_app_src_push_buffer(GST_APP_SRC(fixedSrc), buffer);
+	auto buf = gst_buffer_new_memdup(frameData.data(), frameData.size());
+	if (buf) {
+		auto ret = gst_app_src_push_buffer(GST_APP_SRC(fixedSrc), buf);
 		if (ret == GST_FLOW_OK) {
 			lastPushSuccess.store(chrono::steady_clock::now());
 			return true;
 		}
-
-		// else {
-		// 	tImgTransLogError(
-		// 		"Failed to push buffer to appsrc, flow return: {}", gst_flow_get_name(ret)
-		// 	);
-		// }
-		// Push failure is not a critical error, just skip it and wait for next frame, avoiding log spam.
 	}
 
 	return false;
 }
 
-bool TVidRender::play()
+bool TBytesVidRender::play()
 {
 	if (!pipeline()) {
 		tImgTransLogError("Play failed: Pipeline is not initialized.");
@@ -581,7 +452,7 @@ bool TVidRender::play()
 	return true;
 }
 
-bool TVidRender::pause()
+bool TBytesVidRender::pause()
 {
 	if (!pipeline()) {
 		tImgTransLogError("Pause failed: Pipeline is not initialized.");
@@ -599,7 +470,7 @@ bool TVidRender::pause()
 
 // reset() 和 stopPipeline() 是硬件资源级的重置，在MacOS上如果依赖vtdec_hw系列的硬件解码器，这两个API可能会导致严重错误
 // 仅保证在Linux系统下的稳定性，其他平台应谨慎使用
-bool TVidRender::restart()
+bool TBytesVidRender::restart()
 {
 	if (!pipeline()) {
 		tImgTransLogError("Reset failed: Pipeline is not initialized.");
@@ -621,7 +492,7 @@ bool TVidRender::restart()
 	return true;
 }
 
-bool TVidRender::stop()
+bool TBytesVidRender::stop()
 {
 	if (!pipeline()) {
 		tImgTransLogError("Stop failed: Pipeline is not initialized.");
@@ -636,7 +507,7 @@ bool TVidRender::stop()
 	return true;
 }
 
-bool TVidRender::flush()
+bool TBytesVidRender::flush()
 {
 	if (!pipeline() || !src()) {
 		tImgTransLogError("Flush failed: Pipeline is not initialized.");
@@ -665,48 +536,20 @@ bool TVidRender::flush()
 	return true;
 }
 
-vid::StateType TVidRender::getCurrentState()
+vid::StateType TBytesVidRender::getCurrentState()
 {
 	GstState state;
 	gst_element_get_state(fixedPipe, &state, nullptr, 0);
 	return vid::convGstState(state);
 }
 
-void TVidRender::linkSinkWidget(QQuickItem* widget)
+void TBytesVidRender::linkSinkWidget(QQuickItem* widget)
 {
 	g_object_set(fixedSink, "widget", widget, nullptr);
 }
 
-void TVidRender::initContext(int* argc, char** argv[])
+void TBytesVidRender::initContext(int* argc, char** argv[])
 {
 	vid::initGstContext(argc, argv);
-}
-
-void TVidRender::postTestError()
-{
-	if constexpr (conf::TDebugMode) {
-		if (!enableTestMode) {
-			tImgTransLogError(
-				"Cannot post test error: Test mode is not enabled. This method should only be used "
-				"for testing purposes."
-			);
-			return;
-		}
-
-		if (!fixedPipe) { return; }
-
-		g_autoptr(GError) err =
-			g_error_new(GST_CORE_ERROR, GST_CORE_ERROR_FAILED, "Artificial test error");
-
-		GstMessage* msg =
-			gst_message_new_error(GST_OBJECT(fixedPipe), err, "Debugging jthread effect");
-
-		g_autoptr(GstBus) bus = gst_element_get_bus(fixedPipe);
-		gst_bus_post(bus, msg);  // bus -> no transfer, msg -> transfer full
-	} else {
-		constexpr auto errMsg =
-			"Calling TVidRender::postTestError() has no effect in non-debug builds."sv;
-		tImgTransLogWarn("{}", errMsg);
-	}
 }
 }  // namespace gentau

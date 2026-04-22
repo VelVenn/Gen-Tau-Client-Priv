@@ -12,8 +12,12 @@ DO_CLEAN=0
 
 VERBOSE=0
 
-DO_MEM_PROF=0
+DO_ASAN=0
+DO_TY_SAN=0
+SAN_OPT="O0"
+
 DO_TEST=0
+
 LOG=1
 LOG_FILE=1
 LOG_CONSOLE=1
@@ -36,11 +40,13 @@ while [[ "$#" -gt 0 ]]; do
         --no-log-cons)         LOG_CONSOLE=0 ;;
         -L|--log-level)        LOG_LEVEL="$2"; shift ;;
 
-        -m|--mem-prof)         DO_MEM_PROF=1 ;;
+        -m|--asan)             DO_ASAN=1     ;;
+        --ty-san)              DO_TY_SAN=1   ;;
+        --so)                  SAN_OPT="$2"  ; shift ;;
         -T|--build-test)       DO_TEST=1     ;;
         
         -h|--help)      
-            echo "Usage: $0 [options]"
+            echo "Usage: $0 [[option [value]]...]"
             echo ""
             echo "Configuration Options:"
             echo "  -S, --src-dir DIR      Set source directory (default: .)"
@@ -56,7 +62,9 @@ while [[ "$#" -gt 0 ]]; do
             echo ""
             echo "Build Options:"
             echo "  -T, --build-test       Build tests (default: off)"
-            echo "  -m, --mem-prof         Enable memory profiling (default: off)"
+            echo "  -m, --asan             Enable address sanitizer (default: off)"
+            echo "  --ty-san               Enable type sanitizer (default: off)"
+            echo "  --so LEVEL             Optimization level for sanitizer [O0|O1|O2|O3|Og|Os|Oz|Ofast] (default: O0)"
             echo "  -n, --no-log           Disable all logging (default: off)"
             echo "  --no-log-file          Disable log file output (default: off)"
             echo "  --no-log-cons          Disable log console output (default: off)"
@@ -95,7 +103,9 @@ cmake -S "$SRC_DIR" -G "$GENERATOR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -B "$BUILD_
     -DGEN_TAU_LOG_TO_CONSOLE="$LOG_CONSOLE" \
     -DGEN_TAU_LOG_TO_FILE="$LOG_FILE" \
     -DGEN_TAU_LOG_LEVEL="$LOG_LEVEL" \
-    -DGEN_TAU_USE_ASAN="$DO_MEM_PROF" \
+    -DGEN_TAU_USE_ASAN="$DO_ASAN" \
+    -DGEN_TAU_USE_TYPE_SAN="$DO_TY_SAN" \
+    -DGEN_TAU_SAN_OPT_LEVEL="$SAN_OPT" \
     -DGEN_TAU_BUILD_TESTS="$DO_TEST" \
 
 if [ $? -ne 0 ]; then

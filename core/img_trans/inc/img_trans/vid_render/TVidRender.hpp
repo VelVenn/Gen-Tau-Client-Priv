@@ -1,28 +1,16 @@
 #pragma once
 
 #include "img_trans/vid_render/TFramePool.hpp"
+#include "img_trans/vid_render/TVidUtils.hpp"
 
 #include "utils/TSignal.hpp"
 #include "utils/TTypeRedef.hpp"
 
 #include <atomic>
-#include <chrono>
 #include <memory>
-#include <string>
-#include <string_view>
 #include <thread>
-#include <vector>
 
 class QQuickItem;
-
-extern "C"
-{
-	struct _GstElement;
-	struct _GstPad;
-	typedef struct _GstElement GstElement;
-	typedef struct _GstPad     GstPad;
-	typedef void*              gpointer;
-}
 
 namespace gentau {
 class TReassembly;
@@ -36,106 +24,34 @@ class TReassemblyPasskey
 class TVidRender : public std::enable_shared_from_this<TVidRender>
 {
   private:
-	using FramePtr   = std::unique_ptr<std::vector<u8>>;
-	using ElemRawPtr = GstElement*;
+	using FramePtr   = vid::FramePtr;
+	using ElemRawPtr = vid::ElemRawPtr;
+	using StateType  = vid::StateType;
+	using IssueType  = vid::IssueType;
+	using TimePoint  = vid::TimePoint;
 
   public:
-	using TimePoint = std::chrono::steady_clock::time_point;
 	using SharedPtr = std::shared_ptr<TVidRender>;
-
-  public:
-	enum class IssueType : u32
-	{
-		UNKNOWN = 0,
-
-		PIPELINE_INTERNAL,  // GStreamer pipeline internal error
-		PIPELINE_RESOURCE,
-		PIPELINE_STREAM,
-		PIPELINE_OTHER,
-
-		PUSH_FATAL,  // Issues relate to pushing frames
-		PUSH_BUSY,
-
-		GENERIC  // TVidRender self detected issue, not directly from GStreamer
-	};
-
-	static std::string_view getIssueTypeLiteral(IssueType type) noexcept
-	{
-		switch (type) {
-			case IssueType::UNKNOWN:
-				return "UNKNOWN";
-			case IssueType::PIPELINE_INTERNAL:
-				return "PIPELINE INTERNAL";
-			case IssueType::PIPELINE_RESOURCE:
-				return "PIPELINE RESOURCE";
-			case IssueType::PIPELINE_STREAM:
-				return "PIPELINE STREAM";
-			case IssueType::PIPELINE_OTHER:
-				return "PIPELINE OTHER";
-			case IssueType::PUSH_FATAL:
-				return "PUSH FATAL";
-			case IssueType::PUSH_BUSY:
-				return "PUSH BUSY";
-			case IssueType::GENERIC:
-				return "GENERIC";
-			default:
-				return "UNDEFINED";
-		}
-	}
-
-	enum class StateType : u8
-	{
-		NULL_STATE = 0,
-		READY,
-		PAUSED,
-		RUNNING
-	};
-
-	static std::string_view getStateLiteral(StateType state) noexcept
-	{
-		switch (state) {
-			case StateType::NULL_STATE:
-				return "NULL STATE";
-			case StateType::READY:
-				return "READY";
-			case StateType::PAUSED:
-				return "PAUSED";
-			case StateType::RUNNING:
-				return "RUNNING";
-			default:
-				return "UNDEFINED";
-		}
-	}
 
   private:
 	TFramePool framePool;
 
   private:
-	GstElement* fixedPipe;  // Should not changed the pointer after init
-	GstElement* fixedSrc;   // Should not changed the pointer after init
-	GstElement* fixedSink;  // Should not changed the pointer after init
+	ElemRawPtr fixedPipe;  // Should not changed the pointer after init
+	ElemRawPtr fixedSrc;   // Should not changed the pointer after init
+	ElemRawPtr fixedSink;  // Should not changed the pointer after init
 
   public:
 	TSignal<TVidRender> onEOS;  // End of stream detected
 
-	TSignal<
-		TVidRender,
-		IssueType,
-		std::string /*Err src*/,
-		std::string /*Err msg*/,
-		std::string /*Debug info*/>
-		onPipeError;  // `gentau::TVidRender::IssueType`, `std::string` (src), `std::string` (msg), `std::string` (debug info)
+	// `vid::IssueType`, `std::string` (src), `std::string` (msg), `std::string` (debug info)
+	vid::BusErrSignal<TVidRender> onPipeError;
 
-	TSignal<
-		TVidRender,
-		IssueType,
-		std::string /*Warn src*/,
-		std::string /*Warn msg*/,
-		std::string /*Debug info*/>
-		onPipeWarn;  // `gentau::TVidRender::IssueType`, `std::string` (src), `std::string` (msg), `std::string` (debug info)
+	// `vid::IssueType`, `std::string` (src), `std::string` (msg), `std::string` (debug info)
+	vid::BusErrSignal<TVidRender> onPipeWarn;
 
-	TSignal<TVidRender, StateType /*Old state*/, StateType /*New state*/>
-		onStateChanged;  // `gentau::TVidRender::StateType` (old state), `gentau::TVidRender::StateType` (new state)
+	// `vid::StateType` (old state), `vid::StateType` (new state)
+	vid::BusStateChangeSignal<TVidRender> onStateChanged;
 
   private:
 	std::atomic<TimePoint> lastPushSuccess = TimePoint::min();
@@ -246,7 +162,7 @@ class TVidRender : public std::enable_shared_from_this<TVidRender>
 	bool stop();
 
 	// MT-SAFE
-	StateType getCurrentState();
+	vid::StateType getCurrentState();
 
   public:
 	/**

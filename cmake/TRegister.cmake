@@ -6,7 +6,7 @@ include_guard(GLOBAL)
 function(gt_register_mod)
   set(options NO_ALIAS POSITION_INDEPENDENT GEN_ANCHOR)
   set(oneValueArgs NAME TYPE)
-  set(multiValueArgs SRC DEPS)
+  set(multiValueArgs SRC DEPS COMPILE_OPTS)
 
   cmake_parse_arguments(PARSE_ARGV 0 GT_MOD "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -88,6 +88,10 @@ function(gt_register_mod)
 
   # 设置模块类别
   if(GT_MOD_TYPE STREQUAL "INTERFACE")
+    if(GT_MOD_SRC)
+      message(FATAL_ERROR "!! gt_register_mod -> ${GT_MOD_NAME}: INTERFACE module cannot have source files !!")
+    endif()
+
     add_library(${REAL_MOD_NAME} INTERFACE)
   else()
     if(NOT GT_MOD_SRC)
@@ -161,6 +165,42 @@ function(gt_register_mod)
   endif()
   # ===============
 
+  # 解析模块编译选项
+  if(GT_MOD_TYPE STREQUAL "INTERFACE")
+    set(LIB_COM_CUR_SCOPE "INTERFACE")
+  else()
+    set(LIB_COM_CUR_SCOPE "PRIVATE")
+  endif()
+
+  set(LIB_PUBLIC_COM_OPTS "")
+  set(LIB_PRIVATE_COM_OPTS "")
+  set(LIB_INTERFACE_COM_OPTS "")
+
+  foreach(carg ${GT_MOD_COMPILE_OPTS})
+    if(carg STREQUAL "PUBLIC" OR carg STREQUAL "PRIVATE" OR carg STREQUAL "INTERFACE")
+      set(LIB_COM_CUR_SCOPE "${carg}")
+    else()
+      list(APPEND LIB_${LIB_COM_CUR_SCOPE}_COM_OPTS "${carg}")
+    endif()
+  endforeach()
+
+  if(GT_MOD_TYPE STREQUAL "INTERFACE" AND (LIB_PRIVATE_COM_OPTS OR LIB_PUBLIC_COM_OPTS))
+    message(FATAL_ERROR "!! gt_register_mod -> ${GT_MOD_NAME}: INTERFACE module cannot have PUBLIC or PRIVATE compile options !!")
+  endif()
+
+  if(LIB_PUBLIC_COM_OPTS)
+    target_compile_options(${REAL_MOD_NAME} PUBLIC ${LIB_PUBLIC_COM_OPTS})
+  endif()
+
+  if(LIB_PRIVATE_COM_OPTS)
+    target_compile_options(${REAL_MOD_NAME} PRIVATE ${LIB_PRIVATE_COM_OPTS})
+  endif()
+
+  if(LIB_INTERFACE_COM_OPTS)
+    target_compile_options(${REAL_MOD_NAME} INTERFACE ${LIB_INTERFACE_COM_OPTS})
+  endif()
+  # ===============
+
   # 位置无关代码
   if(GT_MOD_POSITION_INDEPENDENT AND NOT GT_MOD_TYPE STREQUAL "INTERFACE")
     set_target_properties(${REAL_MOD_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -201,7 +241,7 @@ endfunction()
 function(gt_register_test)
   set(options USE_QT USE_CTEST USE_GTEST NO_GMAIN)
   set(oneValueArgs NAME QML_URI)
-  set(multiValueArgs SRC INC QML_FILES DEPS GTEST_ARGS)
+  set(multiValueArgs SRC INC QML_FILES DEPS GTEST_ARGS COMPILE_OPTS)
   cmake_parse_arguments(PARSE_ARGV 0 GT_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
   if(NOT GT_TEST_NAME)
@@ -232,7 +272,12 @@ function(gt_register_test)
 
   # 创建可执行文件目标
   if(GT_TEST_USE_QT)
-    qt_add_executable(${GT_TEST_NAME} ${GT_TEST_SRC})
+    if(GT_TEST_INC)
+      file(GLOB_RECURSE QT_TEST_HEADERS ${GT_TEST_INC}/*.h ${GT_TEST_INC}/*.hpp)
+      qt_add_executable(${GT_TEST_NAME} ${GT_TEST_SRC} ${QT_TEST_HEADERS})
+    else()
+      qt_add_executable(${GT_TEST_NAME} ${GT_TEST_SRC})
+    endif()
 
     if(GT_TEST_QML_FILES)
       if(NOT GT_TEST_QML_URI)
@@ -261,6 +306,33 @@ function(gt_register_test)
   if(GT_TEST_INC)
     target_include_directories(${GT_TEST_NAME} PRIVATE ${GT_TEST_INC})
     message(STATUS "gt_register_test -> ${GT_TEST_NAME}: Header directories specified as '${GT_TEST_INC}'")
+  endif()
+  # ===============
+
+  # 设置测试编译选项
+  set(GT_TEST_COM_CUR_SCOPE "PRIVATE")
+  set(GT_TEST_PUBLIC_COM_OPTS "")
+  set(GT_TEST_PRIVATE_COM_OPTS "")
+  set(GT_TEST_INTERFACE_COM_OPTS "")
+
+  foreach(carg ${GT_TEST_COMPILE_OPTS})
+    if(carg STREQUAL "PUBLIC" OR carg STREQUAL "PRIVATE" OR carg STREQUAL "INTERFACE")
+      set(GT_TEST_COM_CUR_SCOPE "${carg}")
+    else()
+      list(APPEND GT_TEST_${GT_TEST_COM_CUR_SCOPE}_COM_OPTS "${carg}")
+    endif()
+  endforeach()
+
+  if(GT_TEST_PUBLIC_COM_OPTS)
+    target_compile_options(${GT_TEST_NAME} PUBLIC ${GT_TEST_PUBLIC_COM_OPTS})
+  endif()
+
+  if(GT_TEST_PRIVATE_COM_OPTS)
+    target_compile_options(${GT_TEST_NAME} PRIVATE ${GT_TEST_PRIVATE_COM_OPTS})
+  endif()
+
+  if(GT_TEST_INTERFACE_COM_OPTS)
+    target_compile_options(${GT_TEST_NAME} INTERFACE ${GT_TEST_INTERFACE_COM_OPTS})
   endif()
   # ===============
 

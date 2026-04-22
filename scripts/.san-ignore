@@ -1,0 +1,7 @@
+[type]
+src:/build/_deps/*
+src:/third_party/*
+src:/external/*
+
+fun:*spdlog*
+type:*spdlog*

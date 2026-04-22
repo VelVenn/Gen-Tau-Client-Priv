@@ -48,22 +48,22 @@ void MockSender::run()
 	}
 
 	renderer->onStateChanged +=
-		[](gentau::TVidRender::StateType oState, gentau::TVidRender::StateType nState) {
+		[](gentau::vid::StateType oState, gentau::vid::StateType nState) {
 			tImgTransLogInfo(
 				"Sender checked: Renderer state changed from {} to {}",
-				gentau::TVidRender::getStateLiteral(oState),
-				gentau::TVidRender::getStateLiteral(nState)
+				gentau::vid::getStateLiteral(oState),
+				gentau::vid::getStateLiteral(nState)
 			);
 		};
 
-	renderer->onPipeError += [](gentau::TVidRender::IssueType iType,
+	renderer->onPipeError += [](gentau::vid::IssueType iType,
 								const string&                 src,
 								const string&                 msg,
 								const string&                 debug) {
 		tImgTransLogError(
 			"Sender checked: Renderer Pipe Error | Type: {} | Source: {} | Message: {} | "
 			"Debug: {}",
-			gentau::TVidRender::getIssueTypeLiteral(iType),
+			gentau::vid::getIssueTypeLiteral(iType),
 			src,
 			msg,
 			debug
@@ -79,7 +79,7 @@ void MockSender::run()
 		size_t bytesReadTotal = 1;
 		int    sendLessOrNot  = 0;
 		int    sendLessInv    = 10;
-		int    sendLess       = 0;
+		int    sendLess       = 2000;
 
 		int postErrOrNot = 0;
 		int postErrInv   = 50;

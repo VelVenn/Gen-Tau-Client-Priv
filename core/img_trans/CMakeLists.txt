@@ -12,4 +12,8 @@ gt_register_mod(
       conf
       PkgConfig::GST
       PkgConfig::GST_APP
+  
+  COMPILE_OPTS
+    -fno-strict-aliasing
+    -fwrapv
 )

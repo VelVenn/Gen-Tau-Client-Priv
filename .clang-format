@@ -68,7 +68,6 @@ SpaceBeforeRangeBasedForLoopColon: "true"
 SpacesInAngles: "false"
 TabWidth: "4"
 UseTab: ForContinuationAndIndentation
-Language: Cpp
 AllowAllConstructorInitializersOnNextLine: "false"
 SpaceInEmptyParentheses: "false"
 
