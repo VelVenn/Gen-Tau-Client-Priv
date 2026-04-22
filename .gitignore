@@ -103,6 +103,8 @@ misc/
 
 Testing/
 
+res/recv_dump.h265
+
 # Clangd specific ignores
 *.clangd
 
