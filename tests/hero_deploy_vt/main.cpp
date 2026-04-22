@@ -72,14 +72,14 @@ class TestSender
 		txThread = std::jthread([&](stop_token st) mutable {
 			auto next_time = steady_clock::now();
 
-			ifstream txFile("./res/raw_sintel_1080p_stream.h265");
+			ifstream txFile("./res/pkt_dump.h265");
 
 			if (!txFile) {
 				tLogCritical("Unable to open video stream file for sending");
 				return;
 			}
 
-			constexpr size_t CHUNK_SZ = 8192;
+			constexpr size_t CHUNK_SZ = 300;
 			QByteArray       buffer(CHUNK_SZ, 0);
 
 			while (!st.stop_requested()) {
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 		Qt::QueuedConnection
 	);
 
-	auto vtRecv = new VTRecv(bVidRend, TMqttClient::create("101", CLIENT_URI), &engine);
+	auto       vtRecv = new VTRecv(bVidRend, TMqttClient::create("1", CLIENT_URI), &engine);
 	TestSender testSender;
 
 	QObject::connect(
@@ -184,7 +184,9 @@ int main(int argc, char* argv[])
 		new InitGLCtx(bVidRend.get()), QQuickWindow::BeforeSynchronizingStage
 	);
 
+#if defined(USE_LOCAL) && USE_LOCAL == 1
 	testSender.startPub();
+#endif
 
 	return app.exec();
 }

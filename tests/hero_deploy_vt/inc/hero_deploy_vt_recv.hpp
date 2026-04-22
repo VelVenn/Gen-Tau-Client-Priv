@@ -13,7 +13,20 @@
 #include "img_trans/vid_render/TBytesVidRender.hpp"
 #include "utils/TSignal.hpp"
 
-#define CLIENT_URI ("mqtt://127.0.0.1:3333")
+#include <fstream>
+
+#define LOCAL  "mqtt://127.0.0.1:3333"
+#define REMOTE "mqtt://192.168.12.1:3333"
+
+#define USE_LOCAL 0
+
+#define DUMP_RECV 0
+
+#if USE_LOCAL
+#define CLIENT_URI LOCAL
+#else
+#define CLIENT_URI REMOTE
+#endif
 
 class VTRecv : public QObject
 {
@@ -30,7 +43,9 @@ class VTRecv : public QObject
 
 	gentau::TBytesVidRender::SharedPtr _bVidRend;
 
-    std::vector<gentau::Connection> connList;
+	std::vector<gentau::Connection> connList;
+
+	std::ofstream recvDump;
 
   private:
 	void initRecv();

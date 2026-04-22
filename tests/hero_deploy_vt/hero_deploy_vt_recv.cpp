@@ -8,7 +8,7 @@
 
 #include <QQmlContext>
 
-#include <iostream>
+#include "fmt/ranges.h"
 
 #include <span>
 
@@ -16,6 +16,14 @@
 
 using namespace std;
 using namespace gentau;
+
+#define testRegTopicLog(name)                                                                      \
+	{                                                                                              \
+		auto conn = _client->registerTopic((name), [this](const string& payload) {                 \
+			tLogDebug("Recieved topic: {}", (name));                                               \
+		});                                                                                        \
+		connList.push_back(conn);                                                                  \
+	}
 
 VTRecv::VTRecv(
 	TBytesVidRender::SharedPtr vidRender, TMqttClient::SharedPtr client, QObject* parent
@@ -26,7 +34,10 @@ VTRecv::VTRecv(
 	initRecv();
 }
 
-VTRecv::~VTRecv() {}
+VTRecv::~VTRecv()
+{
+	if (recvDump.is_open()) { recvDump.close(); }
+}
 
 void VTRecv::initRecv()
 {
@@ -35,6 +46,9 @@ void VTRecv::initRecv()
 		return;
 	}
 
+#if (defined(USE_LOCAL) && USE_LOCAL != 1) && (defined(DUMP_RECV) && DUMP_RECV == 1)
+	recvDump.open("./res/recv_dump.h265", ios::binary | ios::trunc);
+#endif
 	_client->connect();
 
 	auto conn = _client->registerTopic("CustomByteBlock", [this](const string& payload) {
@@ -60,12 +74,14 @@ void VTRecv::initRecv()
 		span<const u8> frame(
 			reinterpret_cast<const u8*>(vidPkt.data()), static_cast<size_t>(vidPkt.size())
 		);
-
-		for (int i = 0; i < 10; i++) {
-			cerr << hex << static_cast<int>(frame[i]) << " ";
+		
+#if (defined(USE_LOCAL) && USE_LOCAL != 1) && (defined(DUMP_RECV) && DUMP_RECV == 1)
+		if (recvDump.is_open()) {
+			recvDump.write(reinterpret_cast<const char*>(frame.data()), frame.size());
 		}
-		cerr << endl;
-		// cerr << dec << endl;
+#endif
+		// auto dumpSpan = span<const u8>(frame.begin(), frame.end());
+		// tLogInfo("Deploy VT Dump: {}", fmt::format("{:x}", fmt::join(dumpSpan, " ")));
 
 		_bVidRend->tryPushFrame(frame);
 	});
@@ -95,7 +111,7 @@ void VTRecv::clientSwitchHandler(QQmlEngine& engine, const QString& newId)
 	}
 	oldRecv->_client.reset();
 
-	oldRecv->_bVidRend->flush(); // 清空渲染管线的旧数据，等待新的配置信息
+	oldRecv->_bVidRend->flush();  // 清空渲染管线的旧数据，等待新的配置信息
 
 	auto* newRecv = new VTRecv(
 		oldRecv->_bVidRend, TMqttClient::create(newId.toStdString(), CLIENT_URI), &engine
