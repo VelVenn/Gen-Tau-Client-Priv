@@ -79,7 +79,7 @@ void MockSender::run()
 		size_t bytesReadTotal = 1;
 		int    sendLessOrNot  = 0;
 		int    sendLessInv    = 10;
-		int    sendLess       = 0;
+		int    sendLess       = 2000;
 
 		int postErrOrNot = 0;
 		int postErrInv   = 50;
