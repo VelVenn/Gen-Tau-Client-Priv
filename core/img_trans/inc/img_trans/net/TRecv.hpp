@@ -112,7 +112,7 @@ class TRecv
 
   private:
 	static constexpr i32     kRecvBufferSize = 1 * 1024 * 1024;  // 1MB
-	static constexpr timeval kRecvTimeout    = { 0, 50'000 };   // 50ms
+	static constexpr timeval kRecvTimeout    = { 0, 50'000 };    // 50ms
 
   private:
 	// 这里必须放在所有字段的后面，以确保在析构时先停止线程，避免访问已销毁的成员变量。
