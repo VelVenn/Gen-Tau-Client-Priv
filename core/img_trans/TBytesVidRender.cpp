@@ -64,9 +64,9 @@ GstElement* TBytesVidRender::choosePrefDecoder(bool& isDynamic)
 {
 	vector<const gchar*> candidates = {
 #ifdef __linux__
-		"nvh265dec",     // Nvidia
-		"vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
-		"vaapih265dec",  // VA-API
+		// "nvh265dec",     // Nvidia
+		// "vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
+		// "vaapih265dec",  // VA-API // Use soft decode for stable
 #elif defined(WIN32)
 		"nvh265dec",     // Nvidia
 		"d3d12h265dec",  // D3D12
@@ -188,7 +188,8 @@ bool TBytesVidRender::initBusThread()
 				}
 				default:
 					tImgTransLogWarn(
-						"Something weird happened, it should never goto busThread's default branch "
+						"Something weird happened, it should never goto busThread's default "
+						"branch "
 						"..."
 					);  // Should never reach here
 			}
@@ -209,21 +210,23 @@ bool TBytesVidRender::initPipeElements()
 {
 	bool linkDynamic = false;
 
-	fixedPipe                 = gst_pipeline_new("bPipe");
-	fixedSrc                  = gst_element_factory_make("appsrc", "bSrc");
-	ElemRawPtr parser         = gst_element_factory_make("h265parse", "bParser");
-	ElemRawPtr bufferQueue    = gst_element_factory_make("queue", "bBufferQueue");
-	ElemRawPtr decoder        = choosePrefDecoder(linkDynamic);
-	ElemRawPtr leakyQueue     = gst_element_factory_make("queue", "bLeakyQueue");
-	ElemRawPtr colorConv      = gst_element_factory_make("glcolorconvert", "bColorConv");
-	ElemRawPtr uploader       = gst_element_factory_make("glupload", "bUploader");
-	ElemRawPtr sinkCapsFilter = gst_element_factory_make("capsfilter", "bSinkCapsFilter");
-	fixedSink                 = gst_element_factory_make("qml6glsink", "bSink");
+	fixedPipe                  = gst_pipeline_new("bPipe");
+	fixedSrc                   = gst_element_factory_make("appsrc", "bSrc");
+	ElemRawPtr parser          = gst_element_factory_make("h265parse", "bParser");
+	ElemRawPtr parseCapsFilter = gst_element_factory_make("capsfilter", "bParseCapsFilter");
+	ElemRawPtr bufferQueue     = gst_element_factory_make("queue", "bBufferQueue");
+	ElemRawPtr decoder         = choosePrefDecoder(linkDynamic);
+	ElemRawPtr leakyQueue      = gst_element_factory_make("queue", "bLeakyQueue");
+	ElemRawPtr colorConv       = gst_element_factory_make("glcolorconvert", "bColorConv");
+	ElemRawPtr uploader        = gst_element_factory_make("glupload", "bUploader");
+	ElemRawPtr sinkCapsFilter  = gst_element_factory_make("capsfilter", "bSinkCapsFilter");
+	fixedSink                  = gst_element_factory_make("qml6glsink", "bSink");
 
 	if (anyFalse(
 			fixedPipe,
 			fixedSrc,
 			parser,
+			parseCapsFilter,
 			decoder,
 			bufferQueue,
 			uploader,
@@ -235,6 +238,7 @@ bool TBytesVidRender::initPipeElements()
 		for (auto elem : { fixedPipe,
 						   fixedSrc,
 						   parser,
+						   parseCapsFilter,
 						   decoder,
 						   bufferQueue,
 						   uploader,
@@ -254,6 +258,7 @@ bool TBytesVidRender::initPipeElements()
 		GST_BIN(fixedPipe),
 		fixedSrc,
 		parser,
+		parseCapsFilter,
 		decoder,
 		bufferQueue,
 		uploader,
@@ -272,7 +277,9 @@ bool TBytesVidRender::initPipeElements()
 				gst_element_link_many(
 					uploader, colorConv, sinkCapsFilter, leakyQueue, fixedSink, nullptr
 				),
-				gst_element_link_many(fixedSrc, parser, bufferQueue, decoder, nullptr)
+				gst_element_link_many(
+					fixedSrc, parser, parseCapsFilter, bufferQueue, decoder, nullptr
+				)
 			)) {
 			gst_object_unref(fixedPipe);
 			tImgTransLogCritical("{}", errMsg);
@@ -285,6 +292,7 @@ bool TBytesVidRender::initPipeElements()
 		if (!gst_element_link_many(
 				fixedSrc,
 				parser,
+				parseCapsFilter,
 				bufferQueue,
 				decoder,
 				uploader,
@@ -326,6 +334,19 @@ bool TBytesVidRender::initPipeElements()
 	);
 
 	g_object_set(parser, "config-interval", -1, "disable-passthrough", TRUE, nullptr);
+
+	g_autoptr(GstCaps) parseOutCaps = gst_caps_new_simple(
+		"video/x-h265",
+		"stream-format",
+		G_TYPE_STRING,
+		"byte-stream",
+		"alignment",
+		G_TYPE_STRING,
+		"au",
+		nullptr
+	);
+	g_object_set(parseCapsFilter, "caps", parseOutCaps, nullptr);
+
 	g_object_set(bufferQueue, "max-size-buffers", 2, "leaky", 0, nullptr);
 	g_object_set(
 		leakyQueue,
