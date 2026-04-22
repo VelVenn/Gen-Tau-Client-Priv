@@ -1,5 +1,4 @@
 #include <qprotobufserializer.h>
-#include <qt6/QtCore/qcontainerfwd.h>
 #include "comm/TMqttClient.hpp"
 #include "hero_deploy_vt_recv.hpp"
 
