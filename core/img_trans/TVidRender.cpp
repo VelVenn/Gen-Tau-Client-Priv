@@ -76,15 +76,15 @@ GstElement* TVidRender::choosePrefDecoder(bool& isDynamic)
 	vector<const gchar*> candidates = {
 #ifdef __linux__
 		"nvh265dec",     // Nvidia
-		"vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
-		"vaapih265dec",  // VA-API
+		// "vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
+		// "vaapih265dec",  // VA-API
 #elif defined(WIN32)
 		"nvh265dec",     // Nvidia
 		"d3d12h265dec",  // D3D12
 		"d3d11h265dec",  // D3D11
 		"qsvh265dec",    // QuickSync (Intel)
 #elif defined(__APPLE__)
-		"vtdec_hw",      // General VideoToolbox hardware decoder
+		"vtdec_hw",  // General VideoToolbox hardware decoder
 		"vtdec",
 #endif
 		"avdec_h265",  // FFMPEG software decoder as fallback
@@ -221,21 +221,23 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 	bool         linkDynamic = false;
 	const gchar* srcType     = useFileSrc ? "filesrc" : "appsrc";
 
-	fixedPipe                 = gst_pipeline_new("pipeline");
-	fixedSrc                  = gst_element_factory_make(srcType, "src");
-	ElemRawPtr parser         = gst_element_factory_make("h265parse", "parser");
-	ElemRawPtr bufferQueue    = gst_element_factory_make("queue", "bufferQueue");
-	ElemRawPtr decoder        = choosePrefDecoder(linkDynamic);
-	ElemRawPtr leakyQueue     = gst_element_factory_make("queue", "leakyQueue");
-	ElemRawPtr colorConv      = gst_element_factory_make("glcolorconvert", "colorConv");
-	ElemRawPtr uploader       = gst_element_factory_make("glupload", "uploader");
-	ElemRawPtr sinkCapsFilter = gst_element_factory_make("capsfilter", "sinkCapsFilter");
-	fixedSink                 = gst_element_factory_make("qml6glsink", "sink");
+	fixedPipe                  = gst_pipeline_new("pipeline");
+	fixedSrc                   = gst_element_factory_make(srcType, "src");
+	ElemRawPtr parser          = gst_element_factory_make("h265parse", "parser");
+	ElemRawPtr parseCapsFilter = gst_element_factory_make("capsfilter", "parseCapsFilter");
+	ElemRawPtr bufferQueue     = gst_element_factory_make("queue", "bufferQueue");
+	ElemRawPtr decoder         = choosePrefDecoder(linkDynamic);
+	ElemRawPtr leakyQueue      = gst_element_factory_make("queue", "leakyQueue");
+	ElemRawPtr colorConv       = gst_element_factory_make("glcolorconvert", "colorConv");
+	ElemRawPtr uploader        = gst_element_factory_make("glupload", "uploader");
+	ElemRawPtr sinkCapsFilter  = gst_element_factory_make("capsfilter", "sinkCapsFilter");
+	fixedSink                  = gst_element_factory_make("qml6glsink", "sink");
 
 	if (anyFalse(
 			fixedPipe,
 			fixedSrc,
 			parser,
+			parseCapsFilter,
 			decoder,
 			bufferQueue,
 			uploader,
@@ -247,6 +249,7 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 		for (auto elem : { fixedPipe,
 						   fixedSrc,
 						   parser,
+						   parseCapsFilter,
 						   decoder,
 						   bufferQueue,
 						   uploader,
@@ -266,6 +269,7 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 		GST_BIN(fixedPipe),
 		fixedSrc,
 		parser,
+		parseCapsFilter,
 		decoder,
 		bufferQueue,
 		uploader,
@@ -284,7 +288,9 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 				gst_element_link_many(
 					uploader, colorConv, sinkCapsFilter, leakyQueue, fixedSink, nullptr
 				),
-				gst_element_link_many(fixedSrc, parser, bufferQueue, decoder, nullptr)
+				gst_element_link_many(
+					fixedSrc, parser, parseCapsFilter, bufferQueue, decoder, nullptr
+				)
 			)) {
 			gst_object_unref(fixedPipe);
 			tImgTransLogCritical("{}", errMsg);
@@ -299,6 +305,7 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 		if (!gst_element_link_many(
 				fixedSrc,
 				parser,
+				parseCapsFilter,
 				bufferQueue,
 				decoder,
 				uploader,
@@ -363,7 +370,20 @@ bool TVidRender::initPipeElements(bool useFileSrc, const char* filePath)
 
 	// 开启disable-passthrough会强制parse解析每一帧，理论上可以降低缺/错帧带来的影响，但也可能增加CPU负担，目前看来是否开启对管线本身对稳定性影响不大
 	// config-interval最好设置为-1，让parse在遇到关键帧时重新配置(VPS, SPS, PPS)，这个选项对管线的稳定性与恢复能力影响较大
-	g_object_set(parser, "config-interval", -1, "disable-passthrough", FALSE, nullptr);
+	g_object_set(parser, "config-interval", -1, "disable-passthrough", TRUE, nullptr);
+
+	g_autoptr(GstCaps) parseOutCaps = gst_caps_new_simple(
+		"video/x-h265",
+		"stream-format",
+		G_TYPE_STRING,
+		"byte-stream",
+		"alignment",
+		G_TYPE_STRING,
+		"au",
+		nullptr
+	);
+	g_object_set(parseCapsFilter, "caps", parseOutCaps, nullptr);
+
 	g_object_set(bufferQueue, "max-size-buffers", 2, "leaky", 0, nullptr);
 	g_object_set(
 		leakyQueue,
