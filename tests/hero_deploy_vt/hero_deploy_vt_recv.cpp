@@ -4,12 +4,14 @@
 
 #include "comm/TMqttClient.hpp"
 #include "hdvt.qpb.h"
+#include "img_trans/vid_render/TVidUtils.hpp"
 #include "utils/TLog.hpp"
 
 #include <QQmlContext>
 
 #include "fmt/ranges.h"
 
+#include <chrono>
 #include <span>
 
 #define T_LOG_TAG "[Hero VDT VM] "
@@ -50,7 +52,6 @@ void VTRecv::initRecv()
 	recvDump.open("./res/recv_dump.h265", ios::binary | ios::trunc);
 #endif
 	_client->connect();
-
 	auto conn = _client->registerTopic("CustomByteBlock", [this](const string& payload) {
 		Gentau::Topics::CustomByteBlock msg;
 		msg.deserialize(&_serializer, QByteArrayView(payload.data(), payload.size()));
@@ -74,7 +75,7 @@ void VTRecv::initRecv()
 		span<const u8> frame(
 			reinterpret_cast<const u8*>(vidPkt.data()), static_cast<size_t>(vidPkt.size())
 		);
-		
+
 #if (defined(USE_LOCAL) && USE_LOCAL != 1) && (defined(DUMP_RECV) && DUMP_RECV == 1)
 		if (recvDump.is_open()) {
 			recvDump.write(reinterpret_cast<const char*>(frame.data()), frame.size());
