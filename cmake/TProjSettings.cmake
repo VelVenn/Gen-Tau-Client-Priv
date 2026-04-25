@@ -96,3 +96,11 @@ else()
   message(STATUS "-> Log to file disabled")
 endif()
 # ======================== GEN_TAU GLOBAL LOG SETTINGS ===========================
+
+# ====================== GEN_TAU VT HEADER PARSING MESSAGE =======================
+if (GEN_TAU_VT_HEADER_FROM_BI)
+  message(STATUS "-> Using BI header parsing for Gen-τ UDP HEVC stream")
+else()
+  message(STATUS "-> Using LI header parsing for Gen-τ UDP HEVC stream")
+endif()
+# ====================== GEN_TAU VT HEADER PARSING MESSAGE =======================

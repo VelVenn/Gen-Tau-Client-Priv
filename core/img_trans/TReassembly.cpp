@@ -6,6 +6,8 @@
 
 #include "conf/version.hpp"
 
+#include <arpa/inet.h>
+
 #include <chrono>
 #include <cstring>
 #include <string_view>
@@ -34,6 +36,38 @@ TReassembly::TReassembly(TVidRender::SharedPtr _renderer) : renderer(std::move(_
 	}
 }
 
+auto TReassembly::Header::fromLiInplace(span<const u8> data) noexcept -> const Header*
+{
+	if (data.size() < sizeof(Header)) { return nullptr; }
+	return reinterpret_cast<const Header*>(data.data());
+}
+
+auto TReassembly::Header::fromBiInplace(span<u8> data) noexcept -> const Header*
+{
+	if (data.size() < sizeof(Header)) { return nullptr; }
+	auto header      = reinterpret_cast<Header*>(data.data());
+	header->frameIdx = ntohs(header->frameIdx);
+	header->secIdx   = ntohs(header->secIdx);
+	header->frameLen = ntohl(header->frameLen);
+
+	return header;
+}
+
+auto TReassembly::Header::fromBi(span<const u8> data) noexcept -> optional<Header>
+{
+	if (data.size() < sizeof(Header)) { return std::nullopt; }
+	Header header;
+
+	auto liHeaderPtr = fromLiInplace(data);
+	if (!liHeaderPtr) { return std::nullopt; }
+
+	header.frameIdx = ntohs(liHeaderPtr->frameIdx);
+	header.secIdx   = ntohs(liHeaderPtr->secIdx);
+	header.frameLen = ntohl(liHeaderPtr->frameLen);
+
+	return header;
+}
+
 bool TReassembly::ReassemblingFrame::fill(std::span<u8> packet, const Header* header)
 {
 	if (!isOccupied() || isComplete()) { return false; }
@@ -54,15 +88,14 @@ bool TReassembly::ReassemblingFrame::fill(std::span<u8> packet, const Header* he
 
 	if (receivedSecs.test(secIdx)) { return false; }
 
-	if (offset + payloadSize > frameLen) { return false; }
+	// Avoid the padding bytes
+	if (offset + payloadSize > frameLen) { payloadSize = frameLen - offset; }
 
 	if (!destPtr) { return false; }
 
 	memcpy(destPtr + offset, packet.data() + sizeof(Header), payloadSize);
 	receivedSecs.set(secIdx);
 	curLen += payloadSize;
-
-	// tImgTransLogDebug("curLen {}", curLen);
 
 	return true;
 }
@@ -130,7 +163,14 @@ void TReassembly::onPacketRecv(std::span<u8> packetData, TRecvPasskey)
 		return;
 	}
 
-	auto header = Header::parse(packetData);
+	auto header = [&packetData] {
+		if constexpr (conf::TVTHeaderFromBi) {
+			return Header::fromBiInplace(packetData);
+		} else {
+			return Header::fromLiInplace(packetData);
+		}
+	}();
+
 	if (!header) {
 		tImgTransLogWarn("Received packet with invalid header, ignoring.");
 		return;

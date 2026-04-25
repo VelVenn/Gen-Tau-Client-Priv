@@ -11,6 +11,7 @@
 #cmakedefine01 GEN_TAU_LOG_ENABLED
 #cmakedefine01 GEN_TAU_LOG_TO_CONSOLE
 #cmakedefine01 GEN_TAU_LOG_TO_FILE
+#cmakedefine01 GEN_TAU_VT_HEADER_FROM_BI
 
 #define GEN_TAU_LOG_LEVEL "@GEN_TAU_LOG_LEVEL@"
 
@@ -24,5 +25,7 @@ constexpr bool TLogEnabled = (GEN_TAU_LOG_ENABLED == 1);
 constexpr bool TLogToConsole = (GEN_TAU_LOG_TO_CONSOLE == 1);
 
 constexpr bool TLogToFile = (GEN_TAU_LOG_TO_FILE == 1);
-}  
+
+constexpr bool TVTHeaderFromBi = (GEN_TAU_VT_HEADER_FROM_BI == 1);
+}  // namespace conf
 }  // namespace gentau

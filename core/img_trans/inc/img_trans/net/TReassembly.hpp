@@ -34,7 +34,7 @@ class TReassembly : public std::enable_shared_from_this<TReassembly>
 	/**
      * @brief Header struct of the UDP packet according to the RM Comm. Protocol 
      *
-     * @note Little-endian, size is 8 bytes, no alignment, might fail to construct on some
+     * @note Size is 8 bytes, no alignment, might fail to construct on some
 	 *       specific CPU archs.
      * Ref: https://qingflow.com/appView/c5rf6rkkbs02/shareView/c5rf6slgbs02?applyId=693818572
      */
@@ -71,26 +71,39 @@ class TReassembly : public std::enable_shared_from_this<TReassembly>
 		}
 
 		/**
-         * @brief Parse a raw buffer into a Header pointer.
+         * @brief Parse a raw buffer into a Header pointer inplace, interprete from little-endian format.
          *
          * @param data The raw buffer to parse.
          * @return The parsed Header pointer, or nullptr if the buffer is too small.
          * @note No memory allocation or ownership transfer is performed.
          */
-		[[nodiscard("The parsed header pointer should not be ignored")]] static const Header* parse(
-			std::span<const u8> data
-		) noexcept
-		{
-			if (data.size() < sizeof(Header)) { return nullptr; }
-			return reinterpret_cast<const Header*>(data.data());
-		}
+		[[nodiscard("The parsed header pointer should not be ignored")]]
+		static const Header* fromLiInplace(std::span<const u8> data) noexcept;
+
+		/**
+		 * @brief Parse a raw buffer into a Header pointer inplace, interprete from big-endian format.
+		 *
+		 * @param data The raw buffer to parse.
+		 * @return The parsed Header pointer, or nullptr if the buffer is too small.
+		 * @note No memory allocation or ownership transfer is performed.
+		 */
+		[[nodiscard("The parsed header pointer should not be ignored")]]
+		static const Header* fromBiInplace(std::span<u8> data) noexcept;
+
+		/**
+		 * @brief Parse a raw buffer into a Header object, interprete from big-endian format.
+		 *
+		 * @param data The raw buffer to parse.
+		 * @return The parsed Header object, or std::nullopt if the buffer is too small.
+		 */
+		static std::optional<Header> fromBi(std::span<const u8> data) noexcept;
 	};
 	static_assert(sizeof(Header) == 8, "Header size must be 8 bytes");
 
   public:
 	static constexpr u32 maxReAsmSlots        = 5;
 	static constexpr u32 maxPayloadSize       = MTU_LEN - sizeof(Header);
-	static constexpr u32 maxSecPerFrame       = 1536;   // 1536 = 64 * 24, 1536 * 1392 ~= 2.04 MiB
+	static constexpr u32 maxSecPerFrame       = 1536;   // 1536 = 64 * 24, 1536 * 1392 ≈ 2.04 MiB
 	static constexpr u32 bigFrameThres        = 5000;   // 5 KB
 	static constexpr i16 minFrameIdxDiff      = -180;   // About 3 seconds, assuming 60 FPS
 	static constexpr f32 minFrameCompleteRate = 0.95f;  // Minimum receive data ratio to tolerate
