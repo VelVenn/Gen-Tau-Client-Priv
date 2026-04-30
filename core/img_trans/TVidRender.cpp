@@ -76,8 +76,8 @@ GstElement* TVidRender::choosePrefDecoder(bool& isDynamic)
 	vector<const gchar*> candidates = {
 #ifdef __linux__
 		"nvh265dec",     // Nvidia
-		// "vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
-		// "vaapih265dec",  // VA-API
+		"vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
+		"vaapih265dec",  // VA-API
 #elif defined(WIN32)
 		"nvh265dec",     // Nvidia
 		"d3d12h265dec",  // D3D12
