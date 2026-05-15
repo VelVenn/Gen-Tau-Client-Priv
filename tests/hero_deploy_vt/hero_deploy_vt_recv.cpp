@@ -48,6 +48,19 @@ void VTRecv::initRecv()
 		return;
 	}
 
+	connect(
+		this,
+		&VTRecv::restartVidRendRequested,
+		this,
+		[this] {
+			if (_bVidRend) {
+				_bVidRend->flush();
+				_bVidRend->restart();
+			}
+		},
+		Qt::QueuedConnection
+	);
+
 #if (defined(USE_LOCAL) && USE_LOCAL != 1) && (defined(DUMP_RECV) && DUMP_RECV == 1)
 	recvDump.open("./res/recv_dump.h265", ios::binary | ios::trunc);
 #endif
@@ -100,6 +113,11 @@ void VTRecv::requestClientSwitch(const QString& newId)
 	Q_EMIT clientSwitchRequested(newId);
 }
 
+void VTRecv::requestRestartVidRend()
+{
+	Q_EMIT restartVidRendRequested();
+}
+
 void VTRecv::clientSwitchHandler(QQmlEngine& engine, const QString& newId)
 {
 	auto* oldRecv =
@@ -112,7 +130,8 @@ void VTRecv::clientSwitchHandler(QQmlEngine& engine, const QString& newId)
 	}
 	oldRecv->_client.reset();
 
-	oldRecv->_bVidRend->flush();  // 清空渲染管线的旧数据，等待新的配置信息
+	oldRecv->_bVidRend->flush();
+	oldRecv->_bVidRend->restart();  // 清空渲染管线的旧数据，等待新的配置信息
 
 	auto* newRecv = new VTRecv(
 		oldRecv->_bVidRend, TMqttClient::create(newId.toStdString(), CLIENT_URI), &engine

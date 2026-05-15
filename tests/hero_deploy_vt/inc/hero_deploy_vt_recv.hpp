@@ -33,9 +33,11 @@ class VTRecv : public QObject
 	Q_OBJECT
   public:
 	Q_INVOKABLE void requestClientSwitch(const QString& newId);
+	Q_INVOKABLE void requestRestartVidRend();
 
   Q_SIGNALS:
 	void clientSwitchRequested(const QString& newId);
+	void restartVidRendRequested();
 
   private:
 	QProtobufSerializer            _serializer;
