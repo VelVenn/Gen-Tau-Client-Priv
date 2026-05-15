@@ -61,7 +61,7 @@ class RunningTask : public QRunnable
 
 int main(int argc, char* argv[])
 {
-	TImgTrans::initContext(&argc, &argv);  // 初始化Gstreamer上下文 (1)
+	vid::initGstContext(&argc, &argv);  // 初始化Gstreamer上下文 (1)
 
 	// 设置环境变量以优化渲染性能和减少延迟 (2)
 	qputenv("QSG_RENDER_TIMING", "1");                    // 启用渲染时间测量

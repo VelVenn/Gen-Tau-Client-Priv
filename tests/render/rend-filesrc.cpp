@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
 		qputenv("GST_GL_WINDOW", "wayland");
 	}
 
-	gst_init(&argc, &argv);
+	gentau::vid::initGstContext(&argc, &argv);
 
 	{
 		QSurfaceFormat format = QSurfaceFormat::defaultFormat();
