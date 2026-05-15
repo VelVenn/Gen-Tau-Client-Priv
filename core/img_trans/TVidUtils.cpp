@@ -1,8 +1,10 @@
 #include "img_trans/vid_render/TVidUtils.hpp"
 
 #include "utils/TLog.hpp"
+#include "utils/TLogical.hpp"
 
 #include <gst/gst.h>
+#include <gst/gstinfo.h>
 
 #include <mutex>
 
@@ -118,6 +120,76 @@ std::optional<ParsedBusErr> issueParser(GstMessage* msg)
 	return nullopt;
 }
 
+static void onGstLog(
+	GstDebugCategory* category,
+	GstDebugLevel     level,
+	const gchar*      file,
+	const gchar*      function,
+	gint              line,
+	GObject*          object,
+	GstDebugMessage*  message,
+	gpointer          user_data
+)
+{
+	if (level > gst_debug_category_get_threshold(category)) { return; }
+
+	auto getMsg = [message] {
+		auto msg = gst_debug_message_get(message);
+		return msg ? msg : "<none>";
+	};
+
+	auto getCat = [category] {
+		auto cat = gst_debug_category_get_name(category);
+		return cat ? cat : "<none>";
+	};
+
+	auto objName = anyTrue(object, GST_IS_OBJECT(object)) ? GST_OBJECT_NAME(object) : "";
+	if (anyFalse(objName)) { objName = "<unknown>"; }
+
+	auto fileName = file ? file : "<unknown>";
+
+	switch (level) {
+		case GST_LEVEL_ERROR:
+			tImgTransLogError(
+				"[GST:{}] [{}:{}] From {}: {}", getCat(), fileName, line, objName, getMsg()
+			);
+			break;
+		case GST_LEVEL_WARNING:
+		case GST_LEVEL_FIXME:
+			tImgTransLogWarn(
+				"[GST:{}] [{}:{}] From {}: {}", getCat(), fileName, line, objName, getMsg()
+			);
+			break;
+		case GST_LEVEL_INFO:
+			tImgTransLogInfo(
+				"[GST:{}] [{}:{}] From {}: {}", getCat(), fileName, line, objName, getMsg()
+			);
+			break;
+		case GST_LEVEL_DEBUG:
+		case GST_LEVEL_LOG:
+			tImgTransLogDebug(
+				"[GST:{}] [{}:{}] From {}: {}", getCat(), fileName, line, objName, getMsg()
+			);
+			break;
+		case GST_LEVEL_TRACE:
+			tImgTransLogTrace(
+				"[GST:{}] [{}:{}] From {}: {}", getCat(), fileName, line, objName, getMsg()
+			);
+			break;
+		default:
+			break;
+	}
+}
+
+static void initGstLog()
+{
+	// gst_debug_set_default_threshold(GST_LEVEL_FIXME);
+
+	gst_debug_remove_log_function(gst_debug_log_default);
+
+	gst_debug_add_log_function(onGstLog, nullptr, nullptr);
+}
+
 void initGstContext(int* argc, char** argv[])
 {
 	static once_flag initFlag;
@@ -129,6 +201,8 @@ void initGstContext(int* argc, char** argv[])
 			GST_VERSION_MINOR,
 			GST_VERSION_MICRO
 		);
+
+		initGstLog();
 	});
 }
 }  // namespace vid
