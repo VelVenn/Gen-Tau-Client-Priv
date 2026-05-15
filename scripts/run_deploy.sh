@@ -42,5 +42,5 @@ cd "$ROOT"
 if [[ "${GDB:-0}" == "1" ]]; then
   exec gdb --args "$BIN" "$@"
 else
-  exec "$BIN" "$@"
+  GST_DEBUG=3 exec "$BIN" "$@"
 fi
