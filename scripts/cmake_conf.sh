@@ -23,12 +23,19 @@ LOG_FILE=1
 LOG_CONSOLE=1
 LOG_LEVEL="DEFAULT"
 
+CMAKE_EXTRA_ARGS=()
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -S|--src-dir)   SRC_DIR="$2";    shift ;;
         -B|--build-dir) BUILD_DIR="$2";  shift ;; # 移走 "-B"
         -G|--generator) GENERATOR="$2";  shift ;; # 移走 "-G"
         -t|--type)      BUILD_TYPE="$2"; shift ;;
+        -e|--extra)
+            read -r -a EXTRA_ARGS <<< "$2"
+            CMAKE_EXTRA_ARGS+=("${EXTRA_ARGS[@]}")
+            shift
+            ;;
         -j|--jobs)      JOBS="$2";       shift ;;
 
         -v|--verbose)          VERBOSE=1     ;;
@@ -53,6 +60,7 @@ while [[ "$#" -gt 0 ]]; do
             echo "  -B, --build-dir DIR    Set build directory (default: build)"
             echo "  -G, --generator NAME   Set CMake generator (default: Ninja)"
             echo "  -t, --type TYPE        Set build type (default: Debug)"
+            echo "  -e, --extra ARGS       Pass quoted extra CMake configure args (repeatable)"
             echo "  -v, --verbose          Enable Gen-Tau CMake verbose output (default: off)"
             echo ""
             echo "Build Actions:"
@@ -95,6 +103,11 @@ echo "Build Type : $BUILD_TYPE"
 if [[ -n "$JOBS" ]]; then
     echo "Build Jobs : $JOBS"
 fi
+if [[ ${#CMAKE_EXTRA_ARGS[@]} -gt 0 ]]; then
+    printf "CMake Args :"
+    printf " %q" "${CMAKE_EXTRA_ARGS[@]}"
+    printf "\n"
+fi
 echo "========================================"
 
 cmake -S "$SRC_DIR" -G "$GENERATOR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -B "$BUILD_DIR" \
@@ -107,6 +120,7 @@ cmake -S "$SRC_DIR" -G "$GENERATOR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -B "$BUILD_
     -DGEN_TAU_USE_TYPE_SAN="$DO_TY_SAN" \
     -DGEN_TAU_SAN_OPT_LEVEL="$SAN_OPT" \
     -DGEN_TAU_BUILD_TESTS="$DO_TEST" \
+    "${CMAKE_EXTRA_ARGS[@]}"
 
 if [ $? -ne 0 ]; then
     echo "Error: CMake Configuration failed."
