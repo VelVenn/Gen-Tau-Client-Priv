@@ -23,8 +23,6 @@ LOG_FILE=1
 LOG_CONSOLE=1
 LOG_LEVEL="DEFAULT"
 
-VT_HEADER_BI=0
-
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -S|--src-dir)   SRC_DIR="$2";    shift ;;
@@ -41,8 +39,6 @@ while [[ "$#" -gt 0 ]]; do
         --no-log-file)         LOG_FILE=0    ;;
         --no-log-cons)         LOG_CONSOLE=0 ;;
         -L|--log-level)        LOG_LEVEL="$2"; shift ;;
-
-        --bi)                  VT_HEADER_BI=1;;
 
         -m|--asan)             DO_ASAN=1     ;;
         --ty-san)              DO_TY_SAN=1   ;;
@@ -73,7 +69,6 @@ while [[ "$#" -gt 0 ]]; do
             echo "  --no-log-file          Disable log file output (default: off)"
             echo "  --no-log-cons          Disable log console output (default: off)"
             echo "  -L, --log-level LEVEL  Set log level [TRACE|DEBUG|INFO|WARN|ERROR|CRITICAL]"
-            echo "  --bi                   Parse the UDP HEVC Stream header from BI (instead of LI)"
             echo "General:"
             echo "  -h, --help             Show this help message"
             exit 0 
@@ -108,7 +103,6 @@ cmake -S "$SRC_DIR" -G "$GENERATOR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -B "$BUILD_
     -DGEN_TAU_LOG_TO_CONSOLE="$LOG_CONSOLE" \
     -DGEN_TAU_LOG_TO_FILE="$LOG_FILE" \
     -DGEN_TAU_LOG_LEVEL="$LOG_LEVEL" \
-    -DGEN_TAU_VT_HEADER_FROM_BI="$VT_HEADER_BI" \
     -DGEN_TAU_USE_ASAN="$DO_ASAN" \
     -DGEN_TAU_USE_TYPE_SAN="$DO_TY_SAN" \
     -DGEN_TAU_SAN_OPT_LEVEL="$SAN_OPT" \

@@ -22,7 +22,7 @@ set_property(
 # =========================== GEN_TAU LOGGING OPTIONS ============================
 
 # ======================= GEN_TAU UDP HEVC STREAM OPTIONS ========================
-option(GEN_TAU_VT_HEADER_FROM_BI "Use BI header parsing for Gen-τ UDP HEVC stream" OFF)
+option(GEN_TAU_VT_HEADER_FROM_BI "Use BI header parsing for Gen-τ UDP HEVC stream" ON)
 # ======================= GEN_TAU UDP HEVC STREAM OPTIONS ========================
 
 # ========================= GEN_TAU CMAKE DEBUG OPTIONS ==========================
