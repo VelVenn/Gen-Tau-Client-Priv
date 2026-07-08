@@ -1,5 +1,14 @@
 include_guard(GLOBAL)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND EXISTS "/proc/sys/fs/binfmt_misc/WSLInterop")
+  message(STATUS "WSL detected: ignoring /mnt paths for dependency discovery")
+
+  list(PREPEND CMAKE_IGNORE_PREFIX_PATH "/mnt")
+
+  set(CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH FALSE)
+  # set(CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH FALSE)
+endif()
+
 find_package(Qt6 6.8 REQUIRED COMPONENTS
   Quick
   Qml
