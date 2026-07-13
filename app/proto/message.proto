@@ -1,15 +1,15 @@
 syntax = "proto3";
 
 // RoboMaster 2026 机甲大师高校系列赛自定义客户端通信协议
-// 版本: V1.2.0 (20260209)
-// 包含所有上行和下行消息，使用 package 区分数据流方向。
+// 版本: V2.0.0 (20260626)
+// 包含所有上行和下行消息。
 
 // All messages' max QoS is 1 (AT LEAST ONCE)
 
 // -------------------------------------------------------------------------
-// Package 1: 上行消息 (Client -> Server)
+// 上行消息 (Client -> Server)
 // -------------------------------------------------------------------------
-package Gentau.Topics;
+package gentau;
 
 // 2.2.1 KeyboardMouseControl
 // 用途: 传输鼠标键盘输入 (频率: 75Hz)
@@ -36,9 +36,9 @@ message CustomControl
 	optional bytes data = 1;  // 最大30字节的自定义数据
 }
 
-// 2.2.17 MapClickInfoNotify
-// 用途: 云台手地图点击标记 (频率: 触发式发送，两次发送间隔不得低于0.5秒)
-message MapClickInfoNotify
+// 2.2.18 MapClickCmd
+// 用途: 地图点击标记指令 (频率: 触发式发送；云台手触发间隔不得低于0.5秒，半自动控制机器人对应操作手触发间隔不得低于3秒)
+message MapClickCmd
 {
 	// is_send_all 枚举值: 0=指定客户端, 1=除哨兵, 2=包含哨兵
 	// mode 枚举值: 1=地图,2=对方机器人
@@ -54,18 +54,18 @@ message MapClickInfoNotify
 	optional float  map_y       = 8;  // 地图坐标 Y
 }
 
-// 2.2.20 AssemblyCommand
+// 2.2.21 AssemblyCommand
 // 用途: 工程装配指令 (频率: 触发式送达，最高不超过10Hz)
 message AssemblyCommand
 {
-	// operation 枚举值: 1=确认装配, 2=取消装配
+	// operation 枚举值: 0=开始兑换, 1=确认装配, 2=取消装配
 
 	optional uint32 operation  = 1;  // 装配操作类型
 	optional uint32 difficulty = 2;  // 选中的装配难度
 }
 
-// 2.2.22 RobotPerformanceSelectionCommand
-// 用途: 步兵/英雄选择性能体系 (频率: 触发式送达，最高不超过10Hz)
+// 2.2.23 RobotPerformanceSelectionCommand
+// 用途: 地面机器人选择性能体系或控制方式 (频率: 触发式送达，最高不超过10Hz)
 message RobotPerformanceSelectionCommand
 {
 	// shooter 枚举值: 1=冷却优先, 2=爆发优先, 3=英雄近战优先, 4=英雄远程优先
@@ -77,7 +77,7 @@ message RobotPerformanceSelectionCommand
 	optional uint32 sentry_control = 3;  // 哨兵控制方式选择
 }
 
-// 2.2.24 CommonCommand
+// 2.2.25 CommonCommand
 // 用途: 机器人多种常用指令 (频率： 触发式送达，最高不超过10Hz)
 message CommonCommand
 {
@@ -87,7 +87,7 @@ message CommonCommand
 	optional uint32 param    = 2;  // 命令类型对应的参数
 }
 
-// 2.2.25 HeroDeployModeEventCommand
+// 2.2.26 HeroDeployModeEventCommand
 // 用途: 英雄部署模式指令 (频率: 触发式送达，最高不超过10Hz)
 message HeroDeployModeEventCommand
 {
@@ -96,14 +96,14 @@ message HeroDeployModeEventCommand
 	optional uint32 mode = 1;  // 模式
 }
 
-// 2.2.27 RuneActivateCommand
+// 2.2.28 RuneActivateCommand
 // 用途: 能量机关激活指令 (频率: 触发式送达，最高不超过10Hz)
 message RuneActivateCommand
 {
 	optional uint32 activate = 1;  // 激活 (1=开启)
 }
 
-// 2.2.29 DartCommand
+// 2.2.31 DartCommand
 // 用途: 飞镖控制指令 (频率: 触发式送达，最高不超过10Hz)
 message DartCommand
 {
@@ -113,24 +113,24 @@ message DartCommand
 	optional bool   launch_confirm = 3;  // 确认是否发射 (默认为0，1位确认发射)
 }
 
-// 2.2.32 SentryCtrlCommand
+// 2.2.33 SentryCtrlCommand
 // 用途: 哨兵控制指令请求 (频率: 触发式送达，最高不超过10Hz)
 message SentryCtrlCommand
 {
-	// command_id 枚举值: 0=无效, 1=补血点补弹, 2=补给站实体补弹, 3=远程补弹, 4=远程回血, 5=确认复活, 6=确认花费金币复活, 7=地图标点, 8=切换为进攻姿态, 9=切换为防御姿态, 10=切换为移动姿态
+	// command_id 枚举值: 0=无效, 1=补血点补弹, 3=远程补弹, 4=远程回血, 5=确认复活, 6=确认花费金币复活, 7=切换为进攻姿态, 8=切换为防御姿态, 9=切换为移动姿态, 10=切换为强化进攻姿态, 11=切换为强化防御姿态, 12=切换为强化移动姿态
 	optional uint32 command_id = 1;  // 指令编号
 }
 
-// 2.2.34 AirSupportCommand
-// 用途: 空中支援指令 (频率: 1Hz)
+// 2.2.35 AirSupportCommand
+// 用途: 空中支援指令 (频率: 触发式发送)
 message AirSupportCommand
 {
-	// command_id 枚举值: 1:免费呼叫, 2:花费金币呼叫, 3:中断
+	// command_id 枚举值: 0=取消空中支援, 1=免费呼叫空中支援, 2=花费金币呼叫空中支援(仍优先使用免费时长), 3=花费金币解除反制
 	optional uint32 command_id = 1;  // 指令类型
 }
 
 // -------------------------------------------------------------------------
-// Package 2: 下行消息 (Server -> Client)
+// 下行消息 (Server -> Client)
 // -------------------------------------------------------------------------
 
 // 2.2.3 GameStatus
@@ -147,6 +147,8 @@ message GameStatus
 	optional int32  stage_countdown_sec = 6;  // 当前阶段剩余时间
 	optional int32  stage_elapsed_sec   = 7;  // 当前阶段已过时间(秒)
 	optional bool   is_paused           = 8;  // 是否暂停
+	optional uint32 game_result = 9;   // 当局胜者(0=平局, 1=红方胜利, 2=蓝方胜利；非结算阶段为255)
+	optional uint32 end_reason  = 10;  // 比赛结束原因(仅结算阶段有效；其余时间为255)
 }
 
 // 2.2.4 GlobalUnitStatus
@@ -340,9 +342,27 @@ message RobotPathPlanInfo
 	optional uint32 sender_id   = 6;                  // 发送者 ID
 }
 
-// 2.2.18 RaderInfoToClient
+// 2.2.17 MapClickInfo
+// 用途: 地图点击标记信息同步 (频率: 触发式发送；云台手触发间隔不得低于0.5秒，半自动控制机器人对应操作手触发间隔不得低于3秒)
+message MapClickInfo
+{
+	// is_send_all 枚举值: 0=指定客户端, 1=除哨兵, 2=包含哨兵
+	// mode 枚举值: 1=地图, 2=对方机器人
+	// type 枚举值: 1=攻击, 2=防御, 3=警戒, 4=自定义
+
+	optional uint32 is_send_all = 1;  // 发送范围
+	optional bytes  robot_id    = 2;  // 目标机器人 ID 列表(固定7字节)
+	optional uint32 mode        = 3;  // 标记模式
+	optional uint32 enemy_id    = 4;  // 标定的对方 ID
+	optional uint32 ascii       = 5;  // 自定义图标 ASCII 码
+	optional uint32 type        = 6;  // 标记类型
+	optional float  map_x       = 7;  // 地图坐标 X
+	optional float  map_y       = 8;  // 地图坐标 Y
+}
+
+// 2.2.19 RadarInfoToClient
 // 用途: 雷达发送的机器人位置信息 (频率: 触发式发送)
-message RaderInfoToClient
+message RadarInfoToClient
 {
 	repeated RadarSingleRobotInfo robot_info = 1;
 }
@@ -356,21 +376,21 @@ message RadarSingleRobotInfo
 	optional uint32 is_high_light = 3;  // 是否特殊标识
 }
 
-// 2.2.19 CustomByteBlock
+// 2.2.20 CustomByteBlock
 // 用途: 机器人自定义上传数据流 (机器人端对应0x0310) (频率: 50Hz)
 message CustomByteBlock
 {
 	optional bytes data = 1;  // 最大为 2.4 kbit (300 B) 的自定义数据包
 }
 
-// 2.2.21 TechCoreMotionStateSync
+// 2.2.22 TechCoreMotionStateSync
 // 用途: 科技核心运动状态同步 (频率: 1Hz)
 message TechCoreMotionStateSync
 {
 	// basic_state 枚举值: 1=初始位置, 2=运动中, 3=已达到对应位置
-	// putin_state 枚举值: 1=未放入, 2=已放入
-	// move_state 枚举值: 1=未平移, 2=已平移
-	// rotate_state 枚举值: 1=未旋转, 2=已旋转
+	// putin_state 枚举值: 0=未放入, 1=已放入
+	// move_state 枚举值: 0=未平移, 1=已平移
+	// rotate_state 枚举值: 0=未旋转, 1=已旋转
 	// enemy_core_status 枚举值: 0=对方没有正在装配, 1=对方正在装配非四级难度, 2=对方正在装配四级难度
 
 	optional uint32 maximum_difficulty_level = 1;  // 当前可选择的最高装配难度等级
@@ -383,7 +403,7 @@ message TechCoreMotionStateSync
 	optional uint32 remain_time_step         = 8;  // 己方单个步骤装配间隔剩余时长 (有效时期同上)
 }
 
-// 2.2.23 RobotPerformanceSelectionSync
+// 2.2.24 RobotPerformanceSelectionSync
 // 用途: 步兵/英雄性能体系状态同步 (频率: 1Hz)
 message RobotPerformanceSelectionSync
 {
@@ -396,7 +416,7 @@ message RobotPerformanceSelectionSync
 	optional uint32 sentry_control = 3;  // 哨兵控制方式选择
 }
 
-// 2.2.26 DeployModeStatusSync
+// 2.2.27 DeployModeStatusSync
 // 用途: 英雄部署模式状态同步 (频率: 1Hz)
 message DeployModeStatusSync
 {
@@ -405,7 +425,7 @@ message DeployModeStatusSync
 	optional uint32 status = 1;  // 当前部署模式状态
 }
 
-// 2.2.28 RuneStatusSync
+// 2.2.29 RuneStatusSync
 // 用途: 能量机关状态同步 (频率: 1Hz)
 message RuneStatusSync
 {
@@ -415,17 +435,18 @@ message RuneStatusSync
 	optional float  average_rings  = 3;  // 平均环数 (仅大能量机关正在激活状态有效)
 }
 
-// 2.2.29 SentryStatusSync
-// 用途: 哨兵姿态相关信息同步 (频率: 1Hz)
+// 2.2.30 SentryStatusSync
+// 用途: 哨兵姿态相关信息 (频率: 1Hz)
 message SentryStatusSync
 {
 	// posture_id 枚举值: 1=进攻姿态, 2=防御姿态, 3=移动姿态
 
 	optional uint32 posture_id  = 1;  // 姿态ID
 	optional bool   is_weakened = 2;  // 是否弱化
+	optional bool   is_powered  = 3;  // 是否强化
 }
 
-// 2.2.31 DartSelectTargetStatusSync
+// 2.2.32 DartSelectTargetStatusSync
 // 用途: 飞镖目标选择状态同步 (频率: 1Hz)
 message DartSelectTargetStatusSync
 {
@@ -435,8 +456,8 @@ message DartSelectTargetStatusSync
 	optional uint32 open      = 2;  // 闸门状态
 }
 
-// 2.2.32 SentryCtrlResult
-// 用途: 哨兵控制指令结果反馈 (频率: 1Hz)
+// 2.2.34 SentryCtrlResult
+// 用途: 哨兵控制指令结果反馈 (频率: 触发式发送)
 message SentryCtrlResult
 {
 	// result_code 枚举值: 0:成功, 其他:失败
@@ -444,28 +465,17 @@ message SentryCtrlResult
 	optional uint32 result_code = 2;  // 执行结果码
 }
 
-// 2.2.35 AirSupportStatusSync
+// 2.2.36 AirSupportStatusSync
 // 用途: 空中支援状态反馈 (频率: 1Hz)
 message AirSupportStatusSync
 {
 	// airsupport_status 枚举值: 0:未进行空中支援, 1:正在空中支援
 	// is_being_targeted 枚举值: 0:未被照射, 1:正在被照射
-	// shooter_status 枚举值: 0:发射机构被锁定, 1:发射机构正常
+	// shooter_status 枚举值: 0=发射机构被锁定且不可解除, 1=发射机构正常, 2=发射机构被锁定且可花费金币解除
 
 	optional uint32 airsupport_status = 1;  // 空中支援状态
 	optional uint32 left_time         = 2;  // 免费空中支援剩余时间
 	optional uint32 cost_coins        = 3;  // 付费空中支援已花费金币
 	optional uint32 is_being_targeted = 4;  // 当前激光检测模块是否正在检测被照射
 	optional uint32 shooter_status    = 5;  // 空中机器人被反制状态
-}
-
-// 3.0.0 Testing
-// 用途: 测试 (频率: 20Hz)
-message Testing
-{
-	// test 枚举值: 1:未进行空中支援, 2:正在空中支援, 3:空中支援被对方锁定而无法开启
-	// test_int 枚举值: 0:选项0, 1:选项1, 2:选项2
-	uint32 test     = 1;
-	bool   test_bi  = 2;
-	int32  test_int = 3;
 }
