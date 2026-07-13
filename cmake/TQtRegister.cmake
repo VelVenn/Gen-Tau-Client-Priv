@@ -3,6 +3,7 @@ include_guard(GLOBAL)
 # ============================================================================
 # Internal Qt module naming helpers
 # ============================================================================
+# 根据模块短标识统一生成实际构建目标、链接别名与默认 QML URI
 function(_gt_qt_resolve_module_identity MODULE_STEM)
   string(REPLACE "-" ";" NAME_PARTS "${MODULE_STEM}")
   set(PASCAL_NAME "")
@@ -19,6 +20,7 @@ function(_gt_qt_resolve_module_identity MODULE_STEM)
   set(IMPORT_URI "${GT_QML_MOD_URI_PREFIX}.${PASCAL_NAME}" PARENT_SCOPE)
 endfunction()
 
+# 创建模块链接别名；同一别名已指向相同目标时直接复用
 function(_gt_qt_add_module_alias COMMAND_LABEL MODULE_STEM BACKING_TARGET LINK_ALIAS SUPPRESS_ALIAS)
   if(SUPPRESS_ALIAS)
     message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: Alias will not be assigned")
@@ -42,6 +44,7 @@ function(_gt_qt_add_module_alias COMMAND_LABEL MODULE_STEM BACKING_TARGET LINK_A
   message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: Alias assigned as '${LINK_ALIAS}'")
 endfunction()
 
+# 以 QT_ARGS 为分界，将包装层参数与 Qt 原始透传参数分开
 function(_gt_qt_partition_arguments RAW_ARGUMENTS)
   list(FIND RAW_ARGUMENTS "QT_ARGS" DELIMITER_POSITION)
   if(DELIMITER_POSITION EQUAL -1)
@@ -68,6 +71,7 @@ function(_gt_qt_partition_arguments RAW_ARGUMENTS)
   set(QT_PASSTHROUGH "${QT_PASSTHROUGH}" PARENT_SCOPE)
 endfunction()
 
+# 仅在包装层与 QT_ARGS 同时控制同一语义时拒绝重复参数
 function(_gt_qt_reject_duplicate_argument COMMAND_LABEL MODULE_STEM WRAPPER_KEY WRAPPER_VALUE QT_KEY QT_PASSTHROUGH)
   if(NOT WRAPPER_VALUE)
     return()
@@ -82,6 +86,7 @@ function(_gt_qt_reject_duplicate_argument COMMAND_LABEL MODULE_STEM WRAPPER_KEY 
   endif()
 endfunction()
 
+# 读取 QT_ARGS 中单值参数的值，供日志与结果回传使用
 function(_gt_qt_read_passthrough_value QT_PASSTHROUGH QT_KEY)
   list(FIND QT_PASSTHROUGH "${QT_KEY}" KEY_POSITION)
   if(KEY_POSITION EQUAL -1)
@@ -107,9 +112,12 @@ function(gt_register_qt_lib)
   set(oneValueArgs TARGET REAL_TARGET_VAR)
   set(multiValueArgs "")
 
+  # 解析包装层参数并保留 Qt 原始参数
   _gt_qt_partition_arguments("${ARGV}")
   cmake_parse_arguments(GT_QT_LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${WRAPPER_INPUT})
+  # ===============
 
+  # 检查包装层参数
   if(GT_QT_LIB_KEYWORDS_MISSING_VALUES)
     message(
       FATAL_ERROR
@@ -129,12 +137,16 @@ function(gt_register_qt_lib)
       "!! gt_register_qt_lib -> ${GT_QT_LIB_TARGET}: Unknown arguments '${GT_QT_LIB_UNPARSED_ARGUMENTS}', pass Qt arguments after QT_ARGS !!"
     )
   endif()
+  # ===============
 
+  # 解析统一目标名并调用 Qt 创建库
   set(MODULE_STEM "${GT_QT_LIB_TARGET}")
   _gt_qt_resolve_module_identity("${MODULE_STEM}")
 
   qt_add_library(${BACKING_TARGET} ${QT_PASSTHROUGH})
+  # ===============
 
+  # 创建或复用链接别名
   _gt_qt_add_module_alias(
     "gt_register_qt_lib"
     "${MODULE_STEM}"
@@ -142,12 +154,16 @@ function(gt_register_qt_lib)
     "${LINK_ALIAS}"
     "${GT_QT_LIB_NO_ALIAS}"
   )
+  # ===============
 
+  # 将实际构建目标回传至调用作用域
   if(GT_QT_LIB_REAL_TARGET_VAR)
     set(${GT_QT_LIB_REAL_TARGET_VAR} "${BACKING_TARGET}" PARENT_SCOPE)
     message(STATUS "gt_register_qt_lib -> ${GT_QT_LIB_TARGET}: Real target exported to variable '${GT_QT_LIB_REAL_TARGET_VAR}'")
   endif()
+  # ===============
 
+  # 注册完成
   if(GT_QT_LIB_NO_ALIAS)
     message(STATUS "✓ Qt library registered: ${GT_QT_LIB_TARGET} -> ${BACKING_TARGET}")
   else()
@@ -163,9 +179,12 @@ function(gt_register_qml_mod)
   set(oneValueArgs TARGET URI_SUFFIX REAL_TARGET_VAR OUTPUT_TARGETS)
   set(multiValueArgs QML_FILES)
 
+  # 解析包装层参数并保留 Qt 原始参数
   _gt_qt_partition_arguments("${ARGV}")
   cmake_parse_arguments(GT_QML "${options}" "${oneValueArgs}" "${multiValueArgs}" ${WRAPPER_INPUT})
+  # ===============
 
+  # 检查包装层参数
   if(GT_QML_KEYWORDS_MISSING_VALUES)
     message(
       FATAL_ERROR
@@ -179,7 +198,9 @@ function(gt_register_qml_mod)
       "!! gt_register_qml_mod -> Unknown arguments '${GT_QML_UNPARSED_ARGUMENTS}', pass Qt arguments after QT_ARGS !!"
     )
   endif()
+  # ===============
 
+  # ROOT 模式直接挂载现有应用目标，普通模式使用统一命名规则
   if(GT_QML_ROOT)
     if(NOT GT_QML_TARGET)
       message(FATAL_ERROR "!! gt_register_qml_mod -> Root QML module target not specified !!")
@@ -209,9 +230,13 @@ function(gt_register_qml_mod)
       set(IMPORT_URI "${GT_QML_MOD_URI_PREFIX}.${GT_QML_URI_SUFFIX}")
     endif()
   endif()
+  # ===============
 
+  # 从 Qt 原始参数开始组装最终调用参数
   set(QT_INVOCATION ${QT_PASSTHROUGH})
+  # ===============
 
+  # 检查包装层与 QT_ARGS 对同一 Qt 参数的重复控制
   set(WRAPPER_OWNS_URI "${GT_QML_ROOT}")
   if(GT_QML_URI_SUFFIX)
     set(WRAPPER_OWNS_URI TRUE)
@@ -232,7 +257,9 @@ function(gt_register_qml_mod)
     "OUTPUT_TARGETS" "${GT_QML_OUTPUT_TARGETS}"
     "OUTPUT_TARGETS" "${QT_PASSTHROUGH}"
   )
+  # ===============
 
+  # 设置 QML URI；未由包装层控制时允许 QT_ARGS 覆盖
   list(FIND QT_PASSTHROUGH "URI" URI_POSITION)
   if(URI_POSITION EQUAL -1)
     list(APPEND QT_INVOCATION URI "${IMPORT_URI}")
@@ -240,7 +267,9 @@ function(gt_register_qml_mod)
     _gt_qt_read_passthrough_value("${QT_PASSTHROUGH}" "URI")
     set(IMPORT_URI "${PASSTHROUGH_VALUE}")
   endif()
+  # ===============
 
+  # 设置统一版本号；QT_ARGS 中的 VERSION 优先
   list(FIND QT_PASSTHROUGH "VERSION" VERSION_POSITION)
   if(VERSION_POSITION EQUAL -1)
     set(MODULE_VERSION "${GT_QML_MOD_VERSION}")
@@ -249,12 +278,16 @@ function(gt_register_qml_mod)
     _gt_qt_read_passthrough_value("${QT_PASSTHROUGH}" "VERSION")
     set(MODULE_VERSION "${PASSTHROUGH_VALUE}")
   endif()
+  # ===============
 
+  # 添加包装层声明的 QML 文件
   list(FIND QT_PASSTHROUGH "QML_FILES" QML_FILES_POSITION)
   if(QML_FILES_POSITION EQUAL -1 AND GT_QML_QML_FILES)
     list(APPEND QT_INVOCATION QML_FILES ${GT_QML_QML_FILES})
   endif()
+  # ===============
 
+  # 记录 Qt 生成目标的接收变量
   if(GT_QML_OUTPUT_TARGETS)
     set(TARGET_LIST_DESTINATION "${GT_QML_OUTPUT_TARGETS}")
     list(APPEND QT_INVOCATION OUTPUT_TARGETS "${TARGET_LIST_DESTINATION}")
@@ -262,11 +295,15 @@ function(gt_register_qml_mod)
     _gt_qt_read_passthrough_value("${QT_PASSTHROUGH}" "OUTPUT_TARGETS")
     set(TARGET_LIST_DESTINATION "${PASSTHROUGH_VALUE}")
   endif()
+  # ===============
 
+  # 创建或扩展 QML 模块
   message(STATUS "gt_register_qml_mod -> ${MODULE_STEM}: Registering QML module '${IMPORT_URI}'")
 
   qt_add_qml_module(${BACKING_TARGET} ${QT_INVOCATION})
+  # ===============
 
+  # 将 Qt 生成的附加目标回传至调用作用域
   if(TARGET_LIST_DESTINATION)
     set(
       ${TARGET_LIST_DESTINATION}
@@ -274,7 +311,9 @@ function(gt_register_qml_mod)
       PARENT_SCOPE
     )
   endif()
+  # ===============
 
+  # 普通模块创建或复用链接别名，ROOT 模块沿用应用目标
   if(NOT GT_QML_ROOT)
     _gt_qt_add_module_alias(
       "gt_register_qml_mod"
@@ -284,12 +323,16 @@ function(gt_register_qml_mod)
       "${GT_QML_NO_ALIAS}"
     )
   endif()
+  # ===============
 
+  # 将实际构建目标回传至调用作用域
   if(GT_QML_REAL_TARGET_VAR)
     set(${GT_QML_REAL_TARGET_VAR} "${BACKING_TARGET}" PARENT_SCOPE)
     message(STATUS "gt_register_qml_mod -> ${MODULE_STEM}: Real target exported to variable '${GT_QML_REAL_TARGET_VAR}'")
   endif()
+  # ===============
 
+  # 注册完成
   message(STATUS "✓ QML module registered: ${MODULE_STEM} -> ${BACKING_TARGET} [${IMPORT_URI} ${MODULE_VERSION}]")
 endfunction()
 
@@ -301,9 +344,12 @@ function(gt_register_protobuf_mod)
   set(oneValueArgs TARGET URI_SUFFIX REAL_TARGET_VAR OUTPUT_HEADERS OUTPUT_TARGETS)
   set(multiValueArgs PROTO_FILES)
 
+  # 解析包装层参数并保留 Qt 原始参数
   _gt_qt_partition_arguments("${ARGV}")
   cmake_parse_arguments(GT_PROTO_MOD "${options}" "${oneValueArgs}" "${multiValueArgs}" ${WRAPPER_INPUT})
+  # ===============
 
+  # 检查包装层参数
   if(GT_PROTO_MOD_KEYWORDS_MISSING_VALUES)
     message(
       FATAL_ERROR
@@ -327,10 +373,14 @@ function(gt_register_protobuf_mod)
   if(NOT GT_PROTO_MOD_PROTO_FILES)
     message(FATAL_ERROR "!! gt_register_protobuf_mod -> ${GT_PROTO_MOD_TARGET}: Proto files not specified !!")
   endif()
+  # ===============
 
+  # 解析统一目标名、链接别名与默认 QML URI
   set(MODULE_STEM "${GT_PROTO_MOD_TARGET}")
   _gt_qt_resolve_module_identity("${MODULE_STEM}")
+  # ===============
 
+  # 检查包装层与 QT_ARGS 对同一 Qt 参数的重复控制
   _gt_qt_reject_duplicate_argument(
     "gt_register_protobuf_mod" "${MODULE_STEM}"
     "PROTO_FILES" "${GT_PROTO_MOD_PROTO_FILES}"
@@ -356,10 +406,14 @@ function(gt_register_protobuf_mod)
     "OUTPUT_TARGETS" "${GT_PROTO_MOD_OUTPUT_TARGETS}"
     "OUTPUT_TARGETS" "${QT_PASSTHROUGH}"
   )
+  # ===============
 
+  # 从 Qt 原始参数开始组装最终调用参数，并追加协议文件
   set(QT_INVOCATION ${QT_PASSTHROUGH})
   list(APPEND QT_INVOCATION PROTO_FILES ${GT_PROTO_MOD_PROTO_FILES})
+  # ===============
 
+  # 仅在显式指定 QML 时启用 QML 类型生成
   list(FIND QT_PASSTHROUGH "QML" QML_POSITION)
   if(GT_PROTO_MOD_QML)
     list(APPEND QT_INVOCATION QML)
@@ -369,7 +423,9 @@ function(gt_register_protobuf_mod)
   if(NOT QML_POSITION EQUAL -1)
     set(GENERATE_QML_TYPES TRUE)
   endif()
+  # ===============
 
+  # QML 启用后设置模块 URI；URI_SUFFIX 与原始 QML_URI 互斥
   list(FIND QT_PASSTHROUGH "QML_URI" QML_URI_POSITION)
   if(GENERATE_QML_TYPES AND QML_URI_POSITION EQUAL -1)
     if(GT_PROTO_MOD_URI_SUFFIX)
@@ -381,11 +437,13 @@ function(gt_register_protobuf_mod)
     _gt_qt_read_passthrough_value("${QT_PASSTHROUGH}" "QML_URI")
     set(IMPORT_URI "${PASSTHROUGH_VALUE}")
   endif()
+  # ===============
 
   if(GENERATE_QML_TYPES)
     message(STATUS "gt_register_protobuf_mod -> ${MODULE_STEM}: QML URI set to '${IMPORT_URI}'")
   endif()
 
+  # 记录生成头文件与附加目标的接收变量
   if(GT_PROTO_MOD_OUTPUT_HEADERS)
     set(HEADER_LIST_DESTINATION "${GT_PROTO_MOD_OUTPUT_HEADERS}")
     list(APPEND QT_INVOCATION OUTPUT_HEADERS "${HEADER_LIST_DESTINATION}")
@@ -401,9 +459,13 @@ function(gt_register_protobuf_mod)
     _gt_qt_read_passthrough_value("${QT_PASSTHROUGH}" "OUTPUT_TARGETS")
     set(TARGET_LIST_DESTINATION "${PASSTHROUGH_VALUE}")
   endif()
+  # ===============
 
+  # 创建或扩展 Protobuf 目标
   qt_add_protobuf(${BACKING_TARGET} ${QT_INVOCATION})
+  # ===============
 
+  # 将 Qt 生成结果回传至调用作用域
   if(HEADER_LIST_DESTINATION)
     set(
       ${HEADER_LIST_DESTINATION}
@@ -419,7 +481,9 @@ function(gt_register_protobuf_mod)
       PARENT_SCOPE
     )
   endif()
+  # ===============
 
+  # 创建或复用链接别名
   _gt_qt_add_module_alias(
     "gt_register_protobuf_mod"
     "${MODULE_STEM}"
@@ -427,12 +491,16 @@ function(gt_register_protobuf_mod)
     "${LINK_ALIAS}"
     "${GT_PROTO_MOD_NO_ALIAS}"
   )
+  # ===============
 
+  # 将实际构建目标回传至调用作用域
   if(GT_PROTO_MOD_REAL_TARGET_VAR)
     set(${GT_PROTO_MOD_REAL_TARGET_VAR} "${BACKING_TARGET}" PARENT_SCOPE)
     message(STATUS "gt_register_protobuf_mod -> ${MODULE_STEM}: Real target exported to variable '${GT_PROTO_MOD_REAL_TARGET_VAR}'")
   endif()
+  # ===============
 
+  # 注册完成
   if(GT_PROTO_MOD_NO_ALIAS)
     message(STATUS "✓ Qt Protobuf module registered: ${MODULE_STEM} -> ${BACKING_TARGET}")
   else()
