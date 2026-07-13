@@ -15,6 +15,10 @@
 
 #define GEN_TAU_LOG_LEVEL "@GEN_TAU_LOG_LEVEL@"
 
+#define GT_QML_MOD_URI_PREFIX "@GT_QML_MOD_URI_PREFIX@"
+#define GT_QML_MOD_VERSION_MAJOR @GT_QML_MOD_VERSION_MAJOR@
+#define GT_QML_MOD_VERSION_MINOR @GT_QML_MOD_VERSION_MINOR@
+
 namespace gentau {
 namespace conf {
 constexpr bool TDebugMode = (GEN_TAU_DEBUG == 1);
