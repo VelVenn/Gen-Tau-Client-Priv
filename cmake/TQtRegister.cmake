@@ -297,10 +297,29 @@ function(gt_register_qml_mod)
   endif()
   # ===============
 
+  # 确保 OUTPUT_DIRECTORY 末尾与 URI 路径结构一致，避免 qmllint 等工具无法发现模块
+  list(FIND QT_PASSTHROUGH "OUTPUT_DIRECTORY" OD_POSITION)
+  if(NOT GT_QML_ROOT AND OD_POSITION EQUAL -1)
+    string(REPLACE "." "/" URI_PATH "${IMPORT_URI}")
+    list(APPEND QT_INVOCATION OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${URI_PATH}")
+  endif()
+  # ===============
+
   # 创建或扩展 QML 模块
   message(STATUS "gt_register_qml_mod -> ${MODULE_STEM}: Registering QML module '${IMPORT_URI}'")
 
   qt_add_qml_module(${BACKING_TARGET} ${QT_INVOCATION})
+  # ===============
+
+  # 静态 QML 模块需要通过插件目标链接，才能将插件注册代码带入最终可执行文件
+  set(ALIAS_TARGET "${BACKING_TARGET}")
+  set(PLUGIN_TARGET "${BACKING_TARGET}plugin")
+  if(TARGET "${PLUGIN_TARGET}")
+    get_target_property(PLUGIN_TARGET_TYPE "${PLUGIN_TARGET}" TYPE)
+    if(PLUGIN_TARGET_TYPE STREQUAL "STATIC_LIBRARY")
+      set(ALIAS_TARGET "${PLUGIN_TARGET}")
+    endif()
+  endif()
   # ===============
 
   # 将 Qt 生成的附加目标回传至调用作用域
@@ -318,7 +337,7 @@ function(gt_register_qml_mod)
     _gt_qt_add_module_alias(
       "gt_register_qml_mod"
       "${MODULE_STEM}"
-      "${BACKING_TARGET}"
+      "${ALIAS_TARGET}"
       "${LINK_ALIAS}"
       "${GT_QML_NO_ALIAS}"
     )
