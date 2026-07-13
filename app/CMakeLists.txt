@@ -8,7 +8,7 @@ gt_register_qml_mod(
   ROOT
   TARGET ${GT_APP_NAME}
   QML_FILES
-    qml/Main.qml
+  Main.qml
 )
 
 message("Building ${GT_APP_NAME} version ${PROJECT_VERSION}")
@@ -20,11 +20,14 @@ set_target_properties(${GT_APP_NAME} PROPERTIES
   WIN32_EXECUTABLE TRUE
 )
 
+add_subdirectory(qml)
+
 target_link_libraries(${GT_APP_NAME}
-  PRIVATE 
-    Qt6::Quick
-    Gentau::Conf
-    Gentau::App::Msg
+  PRIVATE
+  Qt6::Quick
+  Gentau::Conf
+  Gentau::App::Msg
+  Gentau::App::Singleton
 )
 
 include(GNUInstallDirs)
