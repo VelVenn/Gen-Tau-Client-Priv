@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(GT_QML_MOD_VERSION_MAJOR 1)
 set(GT_QML_MOD_VERSION_MINOR 0)
+set(GT_QML_MOD_VERSION "${GT_QML_MOD_VERSION_MAJOR}.${GT_QML_MOD_VERSION_MINOR}")
 
 add_compile_definitions(QT_NO_KEYWORDS) # 避免与其他第三方库API名称冲突
 # =========================== GEN_TAU GENERAL SETTINGS ===========================

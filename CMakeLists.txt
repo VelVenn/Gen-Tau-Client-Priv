@@ -10,6 +10,7 @@ include(TProjOptions)
 include(TProjSettings)
 include(TDependencies)
 include(TRegister)
+include(TQtRegister)
 include(TExtraInfo)
 
 set_property(GLOBAL PROPERTY GEN_TAU_MODULES "")

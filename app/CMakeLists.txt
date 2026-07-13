@@ -4,9 +4,9 @@ qt_add_executable(${GT_APP_NAME}
   main.cpp
 )
 
-qt_add_qml_module(${GT_APP_NAME}
-  URI ${GT_QML_MOD_URI_PREFIX}
-  VERSION ${GT_QML_MOD_VERSION_MAJOR}.${GT_QML_MOD_VERSION_MINOR}
+gt_register_qml_mod(
+  ROOT
+  TARGET ${GT_APP_NAME}
   QML_FILES
     qml/Main.qml
 )
