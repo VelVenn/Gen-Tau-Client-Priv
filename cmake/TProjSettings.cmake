@@ -20,7 +20,9 @@ add_compile_definitions(QT_NO_KEYWORDS) # 避免与其他第三方库API名称�
 set(GT_APP_NAME "gen-tau")
 set(GT_QML_MOD_URI_PREFIX "Gentau")
 set(GT_LIB_PREFIX "gt-")
+set(GT_APP_MOD_PREFIX "gt-app-")
 set(GT_EXPORT_LIB_NS "Gentau::")
+set(GT_EXPORT_APP_MOD_NS "Gentau::App::")
 # ======================= GEN_TAU INTERNAL NAMING OPTIONS ========================
 
 # ========================= GEN_TAU ARTIFACT SETTINGS ============================

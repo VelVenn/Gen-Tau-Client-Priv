@@ -1,5 +1,4 @@
-
-
+add_subdirectory(proto)
 
 qt_add_executable(${GT_APP_NAME}
   main.cpp
@@ -25,6 +24,7 @@ target_link_libraries(${GT_APP_NAME}
   PRIVATE 
     Qt6::Quick
     Gentau::Conf
+    Gentau::App::Msg
 )
 
 include(GNUInstallDirs)
