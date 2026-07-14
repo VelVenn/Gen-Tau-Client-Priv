@@ -22,26 +22,40 @@ endfunction()
 
 # 创建模块链接别名；同一别名已指向相同目标时直接复用
 function(_gt_qt_add_module_alias COMMAND_LABEL MODULE_STEM BACKING_TARGET LINK_ALIAS SUPPRESS_ALIAS)
+  set(ALIAS_KIND "Link")
+  if(GT_EXPORT_QML_MOD_NS)
+    string(FIND "${LINK_ALIAS}" "${GT_EXPORT_QML_MOD_NS}" QML_ALIAS_POSITION)
+    if(QML_ALIAS_POSITION EQUAL 0)
+      set(ALIAS_KIND "QML")
+    endif()
+  endif()
+  if(ALIAS_KIND STREQUAL "Link" AND GT_EXPORT_APP_MOD_NS)
+    string(FIND "${LINK_ALIAS}" "${GT_EXPORT_APP_MOD_NS}" APP_ALIAS_POSITION)
+    if(APP_ALIAS_POSITION EQUAL 0)
+      set(ALIAS_KIND "App")
+    endif()
+  endif()
+
   if(SUPPRESS_ALIAS)
-    message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: Alias will not be assigned")
+    message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: ${ALIAS_KIND} alias will not be assigned")
     return()
   endif()
 
   if(TARGET ${LINK_ALIAS})
     get_target_property(EXISTING_DESTINATION ${LINK_ALIAS} ALIASED_TARGET)
     if(EXISTING_DESTINATION STREQUAL BACKING_TARGET)
-      message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: Alias '${LINK_ALIAS}' already assigned to '${BACKING_TARGET}'")
+      message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: ${ALIAS_KIND} alias '${LINK_ALIAS}' already assigned to '${BACKING_TARGET}'")
       return()
     endif()
 
     message(
       FATAL_ERROR
-      "!! ${COMMAND_LABEL} -> ${MODULE_STEM}: Alias '${LINK_ALIAS}' conflicts with an existing target !!"
+      "!! ${COMMAND_LABEL} -> ${MODULE_STEM}: ${ALIAS_KIND} alias '${LINK_ALIAS}' conflicts with an existing target !!"
     )
   endif()
 
   add_library(${LINK_ALIAS} ALIAS ${BACKING_TARGET})
-  message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: Alias assigned as '${LINK_ALIAS}'")
+  message(STATUS "${COMMAND_LABEL} -> ${MODULE_STEM}: ${ALIAS_KIND} alias '${LINK_ALIAS}' assigned to '${BACKING_TARGET}'")
 endfunction()
 
 # 以 QT_ARGS 为分界，将包装层参数与 Qt 原始透传参数分开
@@ -321,14 +335,16 @@ function(gt_register_qml_mod)
     endif()
   endif()
 
-  # QML 模块别名始终指向持有 URI、qmldir 与输出目录元数据的 backing target
-  if(GT_QML_URI_SUFFIX)
-    set(QML_ALIAS_SUFFIX "${GT_QML_URI_SUFFIX}")
-  else()
-    string(REPLACE "." ";" URI_PARTS "${IMPORT_URI}")
-    list(GET URI_PARTS -1 QML_ALIAS_SUFFIX)
+  # QML 模块别名按 URI 层级生成，并始终指向持有模块元数据的 backing target
+  set(QML_ALIAS_PATH "${IMPORT_URI}")
+  set(QML_URI_PREFIX "${GT_QML_MOD_URI_PREFIX}.")
+  string(FIND "${QML_ALIAS_PATH}" "${QML_URI_PREFIX}" URI_PREFIX_POSITION)
+  if(URI_PREFIX_POSITION EQUAL 0)
+    string(LENGTH "${QML_URI_PREFIX}" URI_PREFIX_LENGTH)
+    string(SUBSTRING "${QML_ALIAS_PATH}" ${URI_PREFIX_LENGTH} -1 QML_ALIAS_PATH)
   endif()
-  set(QML_ALIAS "${GT_EXPORT_QML_MOD_NS}${QML_ALIAS_SUFFIX}")
+  string(REPLACE "." "::" QML_ALIAS_PATH "${QML_ALIAS_PATH}")
+  set(QML_ALIAS "${GT_EXPORT_QML_MOD_NS}${QML_ALIAS_PATH}")
   # ===============
 
   # 将 Qt 生成的附加目标回传至调用作用域
