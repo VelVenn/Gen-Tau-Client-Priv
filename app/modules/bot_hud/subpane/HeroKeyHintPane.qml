@@ -159,8 +159,6 @@ Item {
                     font.family: Style.notoSansSC.font.family
                     font.pixelSize: param.basePxSize
                     font.bold: param.baseTextBold
-
-                    visible: root.isDeployVt
                 }
 
                 KeyBadge {
