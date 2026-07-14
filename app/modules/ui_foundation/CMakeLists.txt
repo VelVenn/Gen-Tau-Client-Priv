@@ -3,6 +3,7 @@ file(
   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
   CONFIGURE_DEPENDS "*.qml"
 )
+
 file(
   GLOB FONT_FILES
   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -15,8 +16,8 @@ set_source_files_properties(
 )
 
 gt_register_qml_mod(
-  TARGET singleton
-  URI_SUFFIX Singleton
+  TARGET ui-foundation
+  URI_SUFFIX Foundation
   REAL_TARGET_VAR SIN_TARGET
   QML_FILES
     ${SRC_FILES}

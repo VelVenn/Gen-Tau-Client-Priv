@@ -1,4 +1,0 @@
-add_subdirectory(singleton)
-add_subdirectory(basic_widgets)
-add_subdirectory(bot_hud)
-add_subdirectory(conf_panel)
