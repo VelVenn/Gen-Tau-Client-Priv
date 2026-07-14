@@ -13,6 +13,7 @@ file(
 gt_register_qml_mod(
   TARGET basic-widgets
   URI_SUFFIX BasicWidgets
+  REAL_TARGET_VAR BASIC_WIDGETS_TAR
   QML_FILES
     ${QML_FILES}
   QT_ARGS
@@ -20,4 +21,11 @@ gt_register_qml_mod(
     RESOURCES ${IMG_FILES}
     IMPORTS
       TARGET Gentau::Qml::Foundation
+)
+
+target_link_libraries(${BASIC_WIDGETS_TAR}
+  PRIVATE
+    Qt6::Quick
+  PUBLIC
+    Gentau::App::UiFoundation
 )
