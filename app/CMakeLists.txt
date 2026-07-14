@@ -27,6 +27,7 @@ target_link_libraries(${GT_APP_NAME}
   Gentau::Conf
   Gentau::App::Msg
   Gentau::App::UiFoundation
+  Gentau::App::BasicWidgets
 )
 
 include(GNUInstallDirs)
