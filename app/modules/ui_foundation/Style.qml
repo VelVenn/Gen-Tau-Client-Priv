@@ -33,8 +33,12 @@ QtObject {
         source: 'fonts/FiraCode.ttf'
     }
 
-    readonly property FontLoader materialIconFL: FontLoader {
+    readonly property FontLoader materialSharpFL: FontLoader {
         source: 'fonts/MaterialSymbolsSharp.ttf'
+    }
+
+    readonly property FontLoader mdiIconFL: FontLoader {
+        source: 'fonts/MdiIcons.ttf'
     }
 
     readonly property FontLoader notoSansSC: FontLoader {
