@@ -311,15 +311,24 @@ function(gt_register_qml_mod)
   qt_add_qml_module(${BACKING_TARGET} ${QT_INVOCATION})
   # ===============
 
-  # 静态 QML 模块需要通过插件目标链接，才能将插件注册代码带入最终可执行文件
-  set(ALIAS_TARGET "${BACKING_TARGET}")
-  set(PLUGIN_TARGET "${BACKING_TARGET}plugin")
-  if(TARGET "${PLUGIN_TARGET}")
+  # 静态 QML 模块的应用链接入口指向插件，其他情况直接指向 backing target
+  set(APP_ALIAS_TARGET "${BACKING_TARGET}")
+  get_target_property(PLUGIN_TARGET "${BACKING_TARGET}" QT_QML_MODULE_PLUGIN_TARGET)
+  if(PLUGIN_TARGET AND TARGET "${PLUGIN_TARGET}")
     get_target_property(PLUGIN_TARGET_TYPE "${PLUGIN_TARGET}" TYPE)
     if(PLUGIN_TARGET_TYPE STREQUAL "STATIC_LIBRARY")
-      set(ALIAS_TARGET "${PLUGIN_TARGET}")
+      set(APP_ALIAS_TARGET "${PLUGIN_TARGET}")
     endif()
   endif()
+
+  # QML 模块别名始终指向持有 URI、qmldir 与输出目录元数据的 backing target
+  if(GT_QML_URI_SUFFIX)
+    set(QML_ALIAS_SUFFIX "${GT_QML_URI_SUFFIX}")
+  else()
+    string(REPLACE "." ";" URI_PARTS "${IMPORT_URI}")
+    list(GET URI_PARTS -1 QML_ALIAS_SUFFIX)
+  endif()
+  set(QML_ALIAS "${GT_EXPORT_QML_MOD_NS}${QML_ALIAS_SUFFIX}")
   # ===============
 
   # 将 Qt 生成的附加目标回传至调用作用域
@@ -337,8 +346,15 @@ function(gt_register_qml_mod)
     _gt_qt_add_module_alias(
       "gt_register_qml_mod"
       "${MODULE_STEM}"
-      "${ALIAS_TARGET}"
+      "${APP_ALIAS_TARGET}"
       "${LINK_ALIAS}"
+      "${GT_QML_NO_ALIAS}"
+    )
+    _gt_qt_add_module_alias(
+      "gt_register_qml_mod"
+      "${MODULE_STEM}"
+      "${BACKING_TARGET}"
+      "${QML_ALIAS}"
       "${GT_QML_NO_ALIAS}"
     )
   endif()

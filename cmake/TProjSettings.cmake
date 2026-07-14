@@ -24,6 +24,7 @@ set(GT_LIB_PREFIX "gt-")
 set(GT_APP_MOD_PREFIX "gt-app-")
 set(GT_EXPORT_LIB_NS "Gentau::")
 set(GT_EXPORT_APP_MOD_NS "Gentau::App::")
+set(GT_EXPORT_QML_MOD_NS "Gentau::Qml::")
 # ======================= GEN_TAU INTERNAL NAMING OPTIONS ========================
 
 # ========================= GEN_TAU ARTIFACT SETTINGS ============================
