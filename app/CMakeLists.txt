@@ -25,9 +25,8 @@ target_link_libraries(${GT_APP_NAME}
   Qt6::Quick
   Qt6::Protobuf
   Gentau::Conf
-  Gentau::App::Msg
   Gentau::App::UiFoundation
-  Gentau::App::BasicWidgets
+  Gentau::App::BotHud
 )
 
 include(GNUInstallDirs)
