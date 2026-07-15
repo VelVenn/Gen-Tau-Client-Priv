@@ -153,6 +153,7 @@ Item {
 
             font.family: Style.firaCodeFL.font.family
             font.pixelSize: 12
+            font.bold: true
 
             borderWidth: 2
             borderRadius: 4
