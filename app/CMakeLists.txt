@@ -27,6 +27,7 @@ target_link_libraries(${GT_APP_NAME}
   Gentau::Conf
   Gentau::App::UiFoundation
   Gentau::App::BotHud
+  Gentau::App::ConfPanel
 )
 
 include(GNUInstallDirs)
