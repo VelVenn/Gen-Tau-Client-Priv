@@ -42,7 +42,7 @@ target_link_libraries(${BOT_HUD_ELEM_TAR}
 
 gt_register_qml_mod(
   TARGET bot-hud-sub
-  URI_SUFFIX BotHud.SubPane
+  URI_SUFFIX BotHud.Subpane
   REAL_TARGET_VAR BOT_HUD_SUB_TAR
   QML_FILES
     ${SUB_FILES}
@@ -70,7 +70,7 @@ gt_register_qml_mod(
   QT_ARGS
     STATIC
     DEPENDENCIES
-      TARGET Gentau::Qml::BotHud::SubPane
+      TARGET Gentau::Qml::BotHud::Subpane
 )
 
 target_link_libraries(${BOT_HUD_TAR}

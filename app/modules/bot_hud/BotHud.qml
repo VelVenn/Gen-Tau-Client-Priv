@@ -1,6 +1,6 @@
 import QtQuick
 
-import Gentau.BotHud.SubPane
+import Gentau.BotHud.Subpane
 
 Item {
     id: root
