@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Controls.Material.impl as MaterialImpl
 
 import Gentau.Foundation

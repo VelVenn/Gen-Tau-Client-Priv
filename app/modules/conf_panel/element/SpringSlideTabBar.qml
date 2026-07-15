@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 
 import Gentau.Foundation
 
@@ -92,7 +92,7 @@ TabBar {
         Rectangle {
             id: slideBar
 
-            x: root.contentItem.x + root.sliderTargetX - root.contentItem.contentX
+            x: root.contentItem.x + root.sliderTargetX - listView.contentX
             y: root.contentItem.y + (root.currentItem ? root.currentItem.y : 0)
             width: root.sliderTargetWidth
             height: root.currentItem ? root.currentItem.height : 0

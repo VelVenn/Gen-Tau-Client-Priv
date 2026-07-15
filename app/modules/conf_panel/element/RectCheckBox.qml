@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Controls.Material.impl as MaterialImpl
 
 import Gentau.Foundation
@@ -34,6 +34,8 @@ CheckBox {
     }
 
     indicator: Rectangle {
+        id: indRect
+
         implicitWidth: root.indicatorSize
         implicitHeight: root.indicatorSize
         x: root.leftPadding
@@ -88,8 +90,8 @@ CheckBox {
             
             anchor: root.indicator
             
-            pressed: root.indicator.isRipplePressed
-            active: root.indicator.isRipplePressed
+            pressed: indRect.isRipplePressed
+            active: indRect.isRipplePressed
             color: Qt.rgba(1, 1, 1, 0.15)
         }
     }

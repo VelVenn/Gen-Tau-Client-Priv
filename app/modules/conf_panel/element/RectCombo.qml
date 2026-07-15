@@ -1,5 +1,7 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 
 import Gentau.Foundation
 
@@ -13,6 +15,8 @@ ComboBox {
     property color baseBorderColor: Qt.darker(baseFillColor, 1.5)
     property int baseBorderWidth: 2
 
+    property real popupScale: 1.0
+
     implicitHeight: 35
 
     font.family: Style.notoSansSC.font.family
@@ -20,13 +24,19 @@ ComboBox {
 
     delegate: ItemDelegate {
         id: delegateItem
+
+        required property int index
+
         width: control.width
         padding: 8
 
         property color itemTextColor: delegateItem.highlighted ? control.accentColor : control.textColor
 
         contentItem: Text {
-            text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
+            // text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
+
+            text: control.textAt(delegateItem.index)
+
             color: delegateItem.itemTextColor
             font: control.font
             elide: Text.ElideRight

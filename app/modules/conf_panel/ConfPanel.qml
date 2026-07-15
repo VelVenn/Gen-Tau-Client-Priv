@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 
 import QtQuick.Controls
@@ -129,6 +131,8 @@ Popup {
                         model: ['机器人', '界面', '通用']
 
                         SlideNavTab {
+                            required property string modelData
+
                             text: modelData
 
                             width: 100
