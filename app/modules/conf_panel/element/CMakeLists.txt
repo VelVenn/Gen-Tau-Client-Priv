@@ -6,7 +6,7 @@ file(
 
 gt_register_qml_mod(
   TARGET conf-panel-elem
-  URI_SUFFIX Conf.Element
+  URI_SUFFIX ConfPanel.Element
   REAL_TARGET_VAR CONF_PANEL_ELEM_TAR
   QML_FILES
     ${QML_FILES}

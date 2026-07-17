@@ -8,8 +8,8 @@ import QtQuick.Layouts
 import QtQuick.Effects
 
 import Gentau.Foundation
-import Gentau.Conf.Element
-import Gentau.Conf.Subpane
+import Gentau.ConfPanel.Element
+import Gentau.ConfPanel.Subpane
 
 Popup {
     id: root
@@ -158,6 +158,8 @@ Popup {
 
                     InterfaceConfig {
                         id: interfaceConfig
+
+                        initShowKeyHintChecked: InAppSetting.showKeyHint
                     }
 
                     // Item {

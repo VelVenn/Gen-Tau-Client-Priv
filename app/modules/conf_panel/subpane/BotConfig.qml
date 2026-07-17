@@ -3,7 +3,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
 import Gentau.Foundation
-import Gentau.Conf.Element
+import Gentau.ConfPanel.Element
 
 ScrollView {
     id: root

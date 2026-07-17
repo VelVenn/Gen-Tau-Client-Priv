@@ -6,7 +6,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 
 import Gentau.Foundation
-import Gentau.Conf.Element
+import Gentau.ConfPanel.Element
 
 Popup {
     id: root

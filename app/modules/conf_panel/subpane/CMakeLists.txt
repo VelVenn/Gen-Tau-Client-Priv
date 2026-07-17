@@ -6,7 +6,7 @@ file(
 
 gt_register_qml_mod(
   TARGET conf-panel-sub
-  URI_SUFFIX Conf.Subpane
+  URI_SUFFIX ConfPanel.Subpane
   REAL_TARGET_VAR CONF_PANEL_SUB_TAR
   QML_FILES
     ${QML_FILES}
@@ -14,7 +14,7 @@ gt_register_qml_mod(
     STATIC
     IMPORTS
       TARGET Gentau::Qml::Foundation
-      TARGET Gentau::Qml::Conf::Element
+      TARGET Gentau::Qml::ConfPanel::Element
 )
 
 target_link_libraries(${CONF_PANEL_SUB_TAR}

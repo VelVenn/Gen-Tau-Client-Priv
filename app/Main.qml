@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
@@ -5,7 +7,7 @@ import QtQuick.Window
 
 import Gentau.Foundation
 import Gentau.BotHud
-import Gentau.Conf
+import Gentau.ConfPanel
 
 Window {
     id: bottomPane
@@ -62,7 +64,7 @@ Window {
         context: Qt.ApplicationShortcut
         onActivated: {
             if (confLoader.active && confLoader.item) {
-                confLoader.item.close();
+                confLoader.popup.close();
             } else {
                 confLoader.active = true;
             }
@@ -73,6 +75,8 @@ Window {
 
     Loader {
         id: confLoader
+
+        readonly property Popup popup: item as Popup
 
         anchors.fill: parent
         active: false
