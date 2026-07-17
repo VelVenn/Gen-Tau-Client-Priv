@@ -1,0 +1,3 @@
+add_subdirectory(foundation)
+add_subdirectory(basic_widgets)
+add_subdirectory(common_elem)
