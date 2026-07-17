@@ -2,6 +2,8 @@ import QtQuick
 
 import Gentau.BotHud.Subpane
 
+import Gentau.Settings.UiPref
+
 Item {
     id: root
 
@@ -73,6 +75,8 @@ Item {
         anchors.centerIn: parent
 
         scaleFactor: root.scaleFactor
+
+        visible: UiPref.showCrosshair
     }
 
     SpiltAmmoPane {
@@ -82,6 +86,8 @@ Item {
         anchors.verticalCenterOffset: 2 * root.scaleFactor
 
         scaleFactor: root.scaleFactor
+
+        visible: UiPref.showSpdAndAmmo
     }
 
     MyBotStatusHud {
@@ -114,5 +120,7 @@ Item {
         anchors.bottom: myBotModule.bottom
 
         scaleFactor: root.scaleFactor
+
+        alwaysShow: UiPref.showKeyHint
     }
 }

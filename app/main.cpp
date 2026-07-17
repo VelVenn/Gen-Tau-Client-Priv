@@ -7,6 +7,10 @@ int main(int argc, char *argv[])
 {
 	QGuiApplication app(argc, argv);
 
+    app.setOrganizationName("Taurus");
+    app.setOrganizationDomain("taurus.io");
+    app.setApplicationName("gen-tau");
+
 	QQmlApplicationEngine engine;
 	QObject::connect(
 		&engine,

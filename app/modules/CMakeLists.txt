@@ -1,5 +1,7 @@
 add_subdirectory(msg)
 
+add_subdirectory(settings)
+
 add_subdirectory(ui_base)
 
 add_subdirectory(conf_panel)

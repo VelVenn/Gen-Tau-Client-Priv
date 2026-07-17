@@ -11,6 +11,8 @@ import Gentau.Foundation
 import Gentau.ConfPanel.Element
 import Gentau.ConfPanel.Subpane
 
+import Gentau.Settings.UiPref
+
 Popup {
     id: root
     // --- 定位 ---
@@ -159,7 +161,7 @@ Popup {
                     InterfaceConfig {
                         id: interfaceConfig
 
-                        initShowKeyHintChecked: InAppSetting.showKeyHint
+                        preferences: UiPref
                     }
 
                     // Item {

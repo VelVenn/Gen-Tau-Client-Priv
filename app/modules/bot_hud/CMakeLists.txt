@@ -71,10 +71,12 @@ gt_register_qml_mod(
     STATIC
     DEPENDENCIES
       TARGET Gentau::Qml::BotHud::Subpane
+      TARGET Gentau::Qml::Settings::UiPref
 )
 
 target_link_libraries(${BOT_HUD_TAR}
   PRIVATE
     Qt6::Quick
     ${BOT_HUD_SUB_TAR}
+    Gentau::App::SettingsUiPref
 )

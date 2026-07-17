@@ -8,9 +8,7 @@ import Gentau.ConfPanel.Element
 ScrollView {
     id: root
 
-    property bool initShowCrossChecked: true
-    property bool initShowSpdAndAmmoChecked: true
-    property bool initShowKeyHintChecked: true
+    required property var preferences;
 
     ColumnLayout {
         id: bottomLayout
@@ -56,8 +54,12 @@ ScrollView {
 
             spacing: 20
 
-            Component.onCompleted: {
-                crossHudChecker.checked = root.initShowCrossChecked
+            checked: root.preferences.showCrosshair
+
+            onToggled: {
+                if (root.preferences.showCrosshair !== checked) {
+                    root.preferences.showCrosshair = checked
+                }
             }
         }
 
@@ -70,8 +72,12 @@ ScrollView {
 
             spacing: 20
 
-            Component.onCompleted: {
-                spdAndAmmoChecker.checked = root.initShowSpdAndAmmoChecked
+            checked: root.preferences.showSpdAndAmmo
+
+            onToggled: {
+                if (root.preferences.showSpdAndAmmo !== checked) {
+                    root.preferences.showSpdAndAmmo = checked
+                }
             }
         }
 
@@ -84,8 +90,12 @@ ScrollView {
 
             spacing: 20
 
-            Component.onCompleted: {
-                keyHintChecker.checked = root.initShowKeyHintChecked
+            checked: root.preferences.showKeyHint
+
+            onToggled: {
+                if (root.preferences.showKeyHint !== checked) {
+                    root.preferences.showKeyHint = checked
+                }
             }
         }
     }

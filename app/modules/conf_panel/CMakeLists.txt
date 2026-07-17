@@ -7,11 +7,6 @@ file(
   CONFIGURE_DEPENDS "*.qml"
 )
 
-set_source_files_properties(
-  InAppSetting.qml
-  PROPERTIES QT_QML_SINGLETON_TYPE TRUE
-)
-
 gt_register_qml_mod(
   TARGET conf-panel
   URI_SUFFIX ConfPanel
@@ -22,10 +17,12 @@ gt_register_qml_mod(
     STATIC
     DEPENDENCIES
       TARGET Gentau::Qml::ConfPanel::Subpane
+      TARGET Gentau::Qml::Settings::UiPref
 )
 
 target_link_libraries(${CONF_PANEL_TAR}
   PRIVATE
     Qt6::Quick
     Gentau::App::ConfPanelSub
+    Gentau::App::SettingsUiPref
 )

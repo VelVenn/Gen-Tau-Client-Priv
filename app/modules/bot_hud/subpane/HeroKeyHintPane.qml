@@ -13,6 +13,8 @@ Item {
 
     property real scaleFactor: 1.0
 
+    property bool alwaysShow: true
+
     property bool isDeployVt: false
     property bool isDeployMode: false
 
@@ -63,6 +65,8 @@ Item {
             background: Rectangle {
                 id: bg
 
+                visible: root.alwaysShow || root.deployModeProgress > 0.0
+
                 color: Qt.alpha(Style.grayColor, 0.4)
 
                 border.width: 0
@@ -91,12 +95,16 @@ Item {
                     font.family: Style.notoSansSC.font.family
                     font.pixelSize: param.basePxSize
                     font.bold: param.baseTextBold
+
+                    visible: root.alwaysShow
                 }
 
                 KeyBadge {
                     text: "J"
                     font.pixelSize: param.baseKeySize
                     isPressed: root.isJPressed
+
+                    visible: root.alwaysShow
                 }
 
                 Label {
@@ -105,6 +113,8 @@ Item {
                     font.family: Style.notoSansSC.font.family
                     font.pixelSize: param.basePxSize
                     font.bold: param.baseTextBold
+
+                    visible: root.alwaysShow
                 }
 
                 Rectangle {
@@ -113,6 +123,8 @@ Item {
                     Layout.leftMargin: 6
                     Layout.rightMargin: 6
                     color: Qt.alpha("white", 0.5)
+
+                    visible: root.alwaysShow
                 }
 
                 Label {
@@ -122,7 +134,7 @@ Item {
                     font.pixelSize: param.basePxSize
                     font.bold: param.baseTextBold
 
-                    visible: root.isDeployVt
+                    visible: root.isDeployVt && root.alwaysShow
                 }
 
                 KeyBadge {
@@ -130,7 +142,7 @@ Item {
                     font.pixelSize: param.baseKeySize
                     isPressed: root.isJPressed
 
-                    visible: root.isDeployVt
+                    visible: root.isDeployVt && root.alwaysShow
                 }
 
                 Label {
@@ -140,7 +152,7 @@ Item {
                     font.pixelSize: param.basePxSize
                     font.bold: param.baseTextBold
 
-                    visible: root.isDeployVt
+                    visible: root.isDeployVt && root.alwaysShow
                 }
 
                 Rectangle {
@@ -150,7 +162,7 @@ Item {
                     Layout.rightMargin: 6
                     color: Qt.alpha("white", 0.5)
 
-                    visible: root.isDeployVt
+                    visible: root.isDeployVt && root.alwaysShow
                 }
 
                 Label {
@@ -159,6 +171,8 @@ Item {
                     font.family: Style.notoSansSC.font.family
                     font.pixelSize: param.basePxSize
                     font.bold: param.baseTextBold
+
+                    visible: root.alwaysShow || root.deployModeProgress > 0.0
                 }
 
                 KeyBadge {
@@ -170,6 +184,8 @@ Item {
                     isPressed: root.isDeployMode ? root.isLPressed : root.isKPressed
 
                     interactMode: KeyBadge.Mode.Delay
+
+                    visible: root.alwaysShow || root.deployModeProgress > 0.0
                 }
 
                 Label {
@@ -178,6 +194,8 @@ Item {
                     font.family: Style.notoSansSC.font.family
                     font.pixelSize: param.basePxSize
                     font.bold: param.baseTextBold
+
+                    visible: root.alwaysShow || root.deployModeProgress > 0.0
                 }
             }
         }
