@@ -1,4 +1,6 @@
-add_subdirectory(msg)
+add_subdirectory(core_adapter)
+
+add_subdirectory(interfaces)
 
 add_subdirectory(settings)
 
