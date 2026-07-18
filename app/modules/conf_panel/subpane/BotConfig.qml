@@ -10,7 +10,7 @@ ScrollView {
 
     clip: true
 
-    property int curBotIdx: 1
+    property int curBotIdx: 0
     property int curConnMode: 0
 
     property int curShooterPerfMode: 0
