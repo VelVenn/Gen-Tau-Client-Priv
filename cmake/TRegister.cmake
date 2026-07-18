@@ -286,7 +286,7 @@ function(gt_register_test)
       endif()
 
       qt_add_qml_module(${GT_TEST_NAME}
-        URI ${GT_QML_MOD_URI_PREFIX}Test.${GT_TEST_QML_URI}
+        URI ${GT_QML_MOD_URI_PREFIX}.Test.${GT_TEST_QML_URI}
         VERSION ${GT_QML_MOD_VERSION_MAJOR}.${GT_QML_MOD_VERSION_MINOR}
         QML_FILES ${GT_TEST_QML_FILES}
       )
