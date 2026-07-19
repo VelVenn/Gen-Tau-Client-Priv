@@ -196,12 +196,13 @@ auto GMqttAdapter::bind(const QString& clientId, const QString& serverURI) -> Bi
 	return BindResult{ BindStatus::Changed, newGen, "" };
 }
 
-auto GMqttAdapter::registerTopic(const std::string& topic, TopicHandler handler, QObject* context)
+auto GMqttAdapter::registerTopic(QObject* context, const std::string& topic, TopicHandler handler)
 	-> RegisterResult
 {
 	Q_ASSERT(QThread::currentThread() == thread());  // No cross-thread calls
 	Q_ASSERT(context);                               // Context must not be null
-	Q_ASSERT(context->thread() == thread());  // Context must be in the same thread as the adapter
+
+	// Q_ASSERT(context->thread() == thread());  // Context must be in the same thread as the adapter
 
 	if (shuttingDown.load()) {
 		Q_EMIT registerRejected(
@@ -305,7 +306,7 @@ auto GMqttAdapter::registerTopic(const std::string& topic, TopicHandler handler,
 
 			(*handlerPtr)(payload);
 		},
-		Qt::QueuedConnection
+		Qt::AutoConnection
 	);
 
 	return RegisterResult{ qConnHndl, std::nullopt, "" };

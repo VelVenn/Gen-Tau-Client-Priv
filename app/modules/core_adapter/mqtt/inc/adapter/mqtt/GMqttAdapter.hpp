@@ -165,7 +165,7 @@ class GMqttAdapter : public QObject
   public:
 	BindResult bind(const QString& clientId, const QString& serverURI);
 
-	RegisterResult registerTopic(const std::string& topic, TopicHandler handler, QObject* context);
+	RegisterResult registerTopic(QObject* context, const std::string& topic, TopicHandler handler);
 
 	PublishResult publish(
 		quint64            reqGen,
