@@ -1,7 +1,7 @@
 file(
-  GLOB SRC_FILES
+  GLOB_RECURSE SRC_FILES
   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-  CONFIGURE_DEPENDS "*.hpp" "*.cpp"
+  CONFIGURE_DEPENDS "inc/*.hpp" "*.cpp"
 )
 
 gt_register_qt_lib(
