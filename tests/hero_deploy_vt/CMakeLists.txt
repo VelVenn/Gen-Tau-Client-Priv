@@ -24,4 +24,5 @@ gt_register_test(
     comm
     img-trans
     HdvtProto
+    Gentau::App::MqttAdapter
 )

@@ -2,23 +2,19 @@
 
 #include <QObject>
 #include <QProtobufSerializer>
-#include <QQmlEngine>
 #include <QString>
-
-#include <vector>
 
 #include "hdvt.qpb.h"
 
-#include "comm/TMqttClient.hpp"
+#include "adapter/mqtt/GMqttAdapter.hpp"
 #include "img_trans/vid_render/TBytesVidRender.hpp"
-#include "utils/TSignal.hpp"
 
 #include <fstream>
 
 #define LOCAL  "mqtt://127.0.0.1:3333"
 #define REMOTE "mqtt://192.168.12.1:3333"
 
-#define USE_LOCAL 0
+#define USE_LOCAL 1
 
 #define DUMP_RECV 0
 
@@ -40,27 +36,20 @@ class VTRecv : public QObject
 	void restartVidRendRequested();
 
   private:
-	QProtobufSerializer            _serializer;
-	gentau::TMqttClient::SharedPtr _client;
+	QProtobufSerializer  _serializer;
+	gentau::GMqttAdapter _client;
 
 	gentau::TBytesVidRender::SharedPtr _bVidRend;
-
-	std::vector<gentau::Connection> connList;
 
 	std::ofstream recvDump;
 
   private:
-	void initRecv();
+	void                             initRecv();
+	gentau::GMqttAdapter::BindResult bindClient(const QString& clientId);
+	void                             switchClient(const QString& newId);
 
   public:
-	static void clientSwitchHandler(QQmlEngine& engine, const QString& newId);
-
-  public:
-	explicit VTRecv(
-		gentau::TBytesVidRender::SharedPtr vidRender,
-		gentau::TMqttClient::SharedPtr     client = gentau::TMqttClient::create("1", CLIENT_URI),
-		QObject*                           parent = nullptr
-	);
+	explicit VTRecv(gentau::TBytesVidRender::SharedPtr vidRender, QObject* parent = nullptr);
 
 	~VTRecv() override;
 };

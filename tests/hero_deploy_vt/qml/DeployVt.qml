@@ -42,6 +42,10 @@ Window {
 
         text: "Red"
 
+        background: Rectangle {
+            color: Qt.rgba(1, 1, 1, 0.5)
+        }
+
         anchors.right: blueHeroButton.left 
         anchors.verticalCenter: blueHeroButton.verticalCenter
 
@@ -55,6 +59,10 @@ Window {
 
         text: "Blue"
 
+        background: Rectangle {
+            color: Qt.rgba(1, 1, 1, 0.5)
+        }
+
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
 
@@ -67,6 +75,10 @@ Window {
         id: restartButton 
 
         text: "Restart"
+
+        background: Rectangle {
+            color: Qt.rgba(1, 1, 1, 0.5)
+        }
 
         anchors.left: blueHeroButton.right
         anchors.verticalCenter: blueHeroButton.verticalCenter
