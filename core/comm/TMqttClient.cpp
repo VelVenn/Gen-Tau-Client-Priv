@@ -53,7 +53,7 @@ class TMqttClient::Callback : public virtual mqtt::callback, public virtual mqtt
 
 	void message_arrived(const_message_ptr msg) override
 	{
-		if (msg->is_duplicate()) { return; }
+		// if (msg->is_duplicate()) { return; }
 
 		HandlerSignalPtr sigPtr;
 		{
