@@ -126,6 +126,10 @@ TMqttClient::~TMqttClient()
 			"Failed to disconnect gracefully, cause: {}, force to disconnect now", exc.what()
 		);
 	}
+
+	cli.reset();
+
+	cb.reset();
 };
 
 void TMqttClient::subscribeAll()
@@ -174,7 +178,7 @@ Connection TMqttClient::registerTopic(const std::string& topic, ReceiveHandler h
 		} catch (const mqtt::exception& exc) {
 			tCommLogDebug(
 				"Attempt to subscribe to topic '{}' after register but failed, "
-				"this is usually not serious problem, cause: {}",
+				"cause: {}",
 				topic,
 				exc.what()
 			);
@@ -195,6 +199,17 @@ void TMqttClient::connect()
 		return;
 	}
 
-	cli->connect(*connOpt, nullptr, *cb);
+	try {
+		cli->connect(*connOpt, nullptr, *cb);
+	} catch (const mqtt::exception& e) {
+		tCommLogError("Failed to start connection, cause: {}", e.what());
+		onConnectionFailed(e.what() ? e.what() : "Unknown");
+	} catch (const std::exception& e) {
+		tCommLogError("Failed to start connection, cause: {}", e.what());
+		onConnectionFailed(e.what() ? e.what() : "Unknown");
+	} catch (...) {
+		tCommLogError("Failed to start connection, cause: Unknown");
+		onConnectionFailed("Unknown");
+	}
 }
 }  // namespace gentau

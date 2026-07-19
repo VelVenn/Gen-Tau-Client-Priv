@@ -31,7 +31,7 @@ class GMqttAdapter : public QObject
 	struct BindResult
 	{
 		BindStatus             status{ BindStatus::Failed };
-		std::optional<QString> newGen;
+		std::optional<quint64> newGen;
 		QString                failedReason;
 
 		[[nodiscard]] bool succeeded() const noexcept { return status != BindStatus::Failed; }
@@ -39,20 +39,50 @@ class GMqttAdapter : public QObject
 		[[nodiscard]] bool changed() const noexcept { return status == BindStatus::Changed; }
 	};
 
-	enum class PublishStatus : quint32
+	enum class RegisterRejectReason : quint32
 	{
-		Accepted = 0,
-		StaleGeneration,
-        Rejected
+		NoBinding = 0,
+		// ClientRejected,
+		AdapterRejected,
+		Unknown
+	};
+
+	struct RegisterResult
+	{
+		std::optional<TConn>                conn;
+		std::optional<RegisterRejectReason> rejectReason;
+		QString                             cause;
+
+		[[nodiscard]] bool succeeded() const noexcept { return conn.has_value(); }
+	};
+
+	enum class PublishRejectReason : quint32
+	{
+		StaleGeneration = 0,
+		NoBinding,
+		ClientRejected,
+		AdapterRejected,
+		Unknown
 	};
 
 	struct PublishResult
 	{
-		PublishStatus status{ PublishStatus::Rejected };
-		QString       rejectedReason;
+		std::optional<PublishRejectReason> rejectReason;
+		QString                            cause;
 
-		[[nodiscard]] bool succeeded() const noexcept { return status == PublishStatus::Accepted; }
+		[[nodiscard]] bool succeeded() const noexcept { return !rejectReason.has_value(); }
 	};
+
+  private:
+	struct BindingSnapshot
+	{
+		quint64                generation{ 0 };
+		TMqttClient::SharedPtr client{ nullptr };
+
+		[[nodiscard]] bool isValid() const noexcept { return client != nullptr && generation > 0; }
+	};
+
+	using AtomicBindingSnapshot = std::atomic<std::shared_ptr<const BindingSnapshot>>;
 
   Q_SIGNALS:
 	void connected();
@@ -60,29 +90,44 @@ class GMqttAdapter : public QObject
 	void connectionFailed(const QString& cause);
 	void subSyncFailed(const QStringList& failedTopics);
 
-	void rebindStarted(const QString& reqId, const QString& reqUri, quint64 curGen);
+	void bindingStarted(const QString& reqId, const QString& reqUri, quint64 curGen);
 	void bindingChanged(const QString& newId, const QString& newUri, quint64 newGen);
 	void bindingFailed(const QString& reqId, const QString& reqUri, const QString& cause);
 
-    void publishRejected(const QString& topic, const QString& cause, quint64 providedGen);
+	void registerRejected(
+		const QString& topic, RegisterRejectReason rejectReason, const QString& cause
+	);
+
+	void publishRejected(
+		const QString&      topic,
+		PublishRejectReason rejectReason,
+		const QString&      cause,
+		quint64             providedGen
+	);
 
   public:
 	BindResult bind(const QString& clientId, const QString& serverURI);
 
-	std::optional<TConn> registerTopic(
-		quint64 providedGen, const std::string& topic, TopicHandler handler
+	RegisterResult registerTopic(const std::string& topic, TopicHandler handler);
+
+	PublishResult publish(
+		quint64            reqGen,
+		const std::string& topic,
+		const QByteArray&  payload,
+		TMqttClient::QoS   qos = TMqttClient::QoS::AT_LEAST_ONCE
 	);
 
-    
-
   private:
+	std::atomic<bool> shuttingDown{ false };
+
+	bool bindingInProgress{ false };
+
 	std::atomic<quint64> generation{ 0 };
 
-	std::atomic<bool> bound{ false };
-
-	TMqttClient::SharedPtr client = nullptr;
+	AtomicBindingSnapshot snapshot{ nullptr };
 
   public:
 	explicit GMqttAdapter(QObject* parent = nullptr);
+	~GMqttAdapter() override;
 };
 }  // namespace gentau
