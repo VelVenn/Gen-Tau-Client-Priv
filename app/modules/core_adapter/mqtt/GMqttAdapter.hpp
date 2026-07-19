@@ -9,8 +9,16 @@
 
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
+#include <version>
+
+#if defined(__cpp_lib_atomic_shared_ptr) && __cpp_lib_atomic_shared_ptr >= 201711L
+#define G_MQTT_USE_ATOMIC_SHARED_PTR
+#else
+#include <mutex>
+#endif
 
 namespace gentau {
 class GMqttAdapter : public QObject
@@ -82,7 +90,38 @@ class GMqttAdapter : public QObject
 		[[nodiscard]] bool isValid() const noexcept { return client != nullptr && generation > 0; }
 	};
 
-	using AtomicBindingSnapshot = std::atomic<std::shared_ptr<const BindingSnapshot>>;
+#ifndef G_MQTT_USE_ATOMIC_SHARED_PTR
+	struct AtomicBindingSnapshot
+	{
+		using BindingSnapshotPtr = std::shared_ptr<const BindingSnapshot>;
+
+		BindingSnapshotPtr ptr;
+
+		mutable std::mutex mtx;
+
+		[[nodiscard]] std::shared_ptr<const BindingSnapshot> load() const
+		{
+			std::lock_guard lock(mtx);
+			return ptr;
+		}
+
+		void store(std::shared_ptr<const BindingSnapshot> newPtr)
+		{
+			(void)exchange(std::move(newPtr));
+		}
+
+		[[nodiscard]] std::shared_ptr<const BindingSnapshot> exchange(
+			std::shared_ptr<const BindingSnapshot> newPtr
+		)
+		{
+			std::lock_guard lock(mtx);
+			ptr.swap(newPtr);
+			return newPtr;
+		}
+	};
+#else
+	using AtomicBindingSnapshot = std::atomic<std::shared_ptr<const BindingSnapshot> >;
+#endif
 
   Q_SIGNALS:
 	void connected();
