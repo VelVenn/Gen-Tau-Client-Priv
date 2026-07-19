@@ -10,24 +10,43 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <version>
 
 #if defined(__cpp_lib_atomic_shared_ptr) && __cpp_lib_atomic_shared_ptr >= 201711L
 #define G_MQTT_USE_ATOMIC_SHARED_PTR
-#else
-#include <mutex>
 #endif
 
 namespace gentau {
+class GMqttChannel final : public QObject
+{
+	Q_OBJECT
+
+  private:
+	ScopedConnection conn;
+
+  Q_SIGNALS:
+	void received(quint64 gen, const QByteArray& payload);
+
+  public:
+	void setConnection(ScopedConnection&& newConn) { conn = std::move(newConn); }
+
+	explicit GMqttChannel(QObject* parent = nullptr) : QObject(parent) {};
+
+	~GMqttChannel() override = default;
+};
+
 class GMqttAdapter : public QObject
 {
 	Q_OBJECT
 
   public:
-	using TConn        = gentau::Connection;
-	using TopicHandler = std::function<void(const QByteArray& payload)>;
+	using TConn         = gentau::Connection;
+	using TopicHandler  = std::function<void(const QByteArray& payload)>;
+	using TopicRegister = std::unordered_map<std::string, std::unique_ptr<GMqttChannel> >;
 
 	enum class BindStatus : quint32
 	{
@@ -50,16 +69,15 @@ class GMqttAdapter : public QObject
 	enum class RegisterRejectReason : quint32
 	{
 		NoBinding = 0,
-		// ClientRejected,
 		AdapterRejected,
 		Unknown
 	};
 
 	struct RegisterResult
 	{
-		std::optional<TConn>                conn;
-		std::optional<RegisterRejectReason> rejectReason;
-		QString                             cause;
+		std::optional<QMetaObject::Connection> conn;
+		std::optional<RegisterRejectReason>    rejectReason;
+		QString                                cause;
 
 		[[nodiscard]] bool succeeded() const noexcept { return conn.has_value(); }
 	};
@@ -147,7 +165,7 @@ class GMqttAdapter : public QObject
   public:
 	BindResult bind(const QString& clientId, const QString& serverURI);
 
-	RegisterResult registerTopic(const std::string& topic, TopicHandler handler);
+	RegisterResult registerTopic(const std::string& topic, TopicHandler handler, QObject* context);
 
 	PublishResult publish(
 		quint64            reqGen,
@@ -164,6 +182,8 @@ class GMqttAdapter : public QObject
 	std::atomic<quint64> generation{ 0 };
 
 	AtomicBindingSnapshot snapshot{ nullptr };
+
+	TopicRegister topicRegister;
 
   public:
 	explicit GMqttAdapter(QObject* parent = nullptr);

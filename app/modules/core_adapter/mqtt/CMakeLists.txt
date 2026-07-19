@@ -12,6 +12,11 @@ gt_register_qt_lib(
     ${SRC_FILES}
 )
 
+target_include_directories(${MQTT_TAR}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+)
+
 target_link_libraries(${MQTT_TAR}
   PUBLIC
     Qt6::Core 

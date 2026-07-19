@@ -1,9 +1,11 @@
-#include "GMqttAdapter.hpp"
+#include "adapter/mqtt/GMqttAdapter.hpp"
 #include <qassert.h>
 
 #include <QMetaObject>
+#include <QPointer>
 #include <QScopedValueRollback>
 #include <QThread>
+#include <string>
 
 #include "utils/TLog.hpp"
 
@@ -82,6 +84,9 @@ auto GMqttAdapter::bind(const QString& clientId, const QString& serverURI) -> Bi
 	}
 
 	const quint64 newGen = ++generation;
+
+	topicRegister.clear();
+	tLogDebug("New generation '{}' assigned, old topic register cleared", newGen);
 
 	// --------------------  Qt Signal installation --------------------
 	newClient->onConnected += [this, newGen]() {
@@ -191,8 +196,13 @@ auto GMqttAdapter::bind(const QString& clientId, const QString& serverURI) -> Bi
 	return BindResult{ BindStatus::Changed, newGen, "" };
 }
 
-auto GMqttAdapter::registerTopic(const std::string& topic, TopicHandler handler) -> RegisterResult
+auto GMqttAdapter::registerTopic(const std::string& topic, TopicHandler handler, QObject* context)
+	-> RegisterResult
 {
+	Q_ASSERT(QThread::currentThread() == thread());  // No cross-thread calls
+	Q_ASSERT(context);                               // Context must not be null
+	Q_ASSERT(context->thread() == thread());  // Context must be in the same thread as the adapter
+
 	if (shuttingDown.load()) {
 		Q_EMIT registerRejected(
 			QString::fromStdString(topic),
@@ -205,29 +215,41 @@ auto GMqttAdapter::registerTopic(const std::string& topic, TopicHandler handler)
 							   QStringLiteral("Adapter is shutting down") };
 	}
 
-    if (topic.empty()) {
-        const QString cause = QStringLiteral("Topic is empty");
+	if (!context) {
+		const QString cause = QStringLiteral("Context is null");
 
-        Q_EMIT registerRejected(
-            QString::fromStdString(topic), RegisterRejectReason::AdapterRejected, cause
-        );
+		Q_EMIT registerRejected(
+			QString::fromStdString(topic), RegisterRejectReason::AdapterRejected, cause
+		);
 
-        tLogWarn("Failed to register topic '{}', cause: Topic is empty", topic);
+		tLogWarn("Failed to register topic '{}', cause: Context is null", topic);
 
-        return RegisterResult{ std::nullopt, RegisterRejectReason::AdapterRejected, cause };
-    }
+		return RegisterResult{ std::nullopt, RegisterRejectReason::AdapterRejected, cause };
+	}
 
-    if (!handler) {
-        const QString cause = QStringLiteral("Topic handler is null");
+	if (topic.empty()) {
+		const QString cause = QStringLiteral("Topic is empty");
 
-        Q_EMIT registerRejected(
-            QString::fromStdString(topic), RegisterRejectReason::AdapterRejected, cause
-        );
+		Q_EMIT registerRejected(
+			QString::fromStdString(topic), RegisterRejectReason::AdapterRejected, cause
+		);
 
-        tLogWarn("Failed to register topic '{}', cause: Topic handler is null", topic);
+		tLogWarn("Failed to register topic '{}', cause: Topic is empty", topic);
 
-        return RegisterResult{ std::nullopt, RegisterRejectReason::AdapterRejected, cause };
-    }
+		return RegisterResult{ std::nullopt, RegisterRejectReason::AdapterRejected, cause };
+	}
+
+	if (!handler) {
+		const QString cause = QStringLiteral("Topic handler is null");
+
+		Q_EMIT registerRejected(
+			QString::fromStdString(topic), RegisterRejectReason::AdapterRejected, cause
+		);
+
+		tLogWarn("Failed to register topic '{}', cause: Topic handler is null", topic);
+
+		return RegisterResult{ std::nullopt, RegisterRejectReason::AdapterRejected, cause };
+	}
 
 	const auto providedSnap = snapshot.load();
 
@@ -244,27 +266,49 @@ auto GMqttAdapter::registerTopic(const std::string& topic, TopicHandler handler)
 	}
 
 	const auto providedGen = providedSnap->generation;
+	auto       handlerPtr  = std::make_shared<TopicHandler>(std::move(handler));
 
-	auto handlerPtr = std::make_shared<TopicHandler>(std::move(handler));
+	auto [topicRegIter, inserted] =
+		topicRegister.try_emplace(topic, std::make_unique<GMqttChannel>(this));
 
-	auto conn = providedSnap->client->registerTopic(
-		topic, [this, providedGen, handlerPtr](const std::string& payload) {
-			QByteArray data(payload.data(), static_cast<qsizetype>(payload.size()));
+	if (inserted) {
+		auto tConn = providedSnap->client->registerTopic(
+			topic, [this, topic, providedGen](const string& payload) {
+				QByteArray data(payload.data(), static_cast<qsizetype>(payload.size()));
 
-			QMetaObject::invokeMethod(
-				this,
-				[this, providedGen, handlerPtr, _data = std::move(data)] {
-					const auto currentSnap = snapshot.load();
-					if (!currentSnap || currentSnap->generation != providedGen) { return; }
+				QMetaObject::invokeMethod(
+					this,
+					[this, topic, providedGen, data = std::move(data)]() {
+						const auto currentSnap = snapshot.load();
+						if (!currentSnap || currentSnap->generation != providedGen) { return; }
 
-					(*handlerPtr)(_data);
-				},
-				Qt::QueuedConnection
-			);
-		}
+						auto iter = topicRegister.find(topic);
+						if (iter == topicRegister.end()) { return; }
+
+						iter->second->received(providedGen, data);
+					},
+					Qt::QueuedConnection
+				);
+			}
+		);
+
+		topicRegIter->second->setConnection(std::move(tConn));
+	}
+
+	auto qConnHndl = QObject::connect(
+		topicRegIter->second.get(),
+		&GMqttChannel::received,
+		context,
+		[this, handlerPtr](quint64 gen, const QByteArray& payload) {
+			const auto currentSnap = snapshot.load();
+			if (!currentSnap || currentSnap->generation != gen) { return; }
+
+			(*handlerPtr)(payload);
+		},
+		Qt::QueuedConnection
 	);
 
-	return RegisterResult{ std::move(conn), std::nullopt, "" };
+	return RegisterResult{ qConnHndl, std::nullopt, "" };
 }
 
 auto GMqttAdapter::publish(
