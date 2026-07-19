@@ -71,6 +71,7 @@ auto VTRecv::bindClient(const QString& clientId) -> GMqttAdapter::BindResult
 	if (!bindResult.changed()) { return bindResult; }
 
 	auto registerResult = _client.registerTopic(
+		this,
 		"CustomByteBlock",
 		[this](const QByteArray& payload) {
 			Gentau::Topics::CustomByteBlock msg;
@@ -105,8 +106,7 @@ auto VTRecv::bindClient(const QString& clientId) -> GMqttAdapter::BindResult
 			// tLogInfo("Deploy VT Dump: {}", fmt::format("{:x}", fmt::join(dumpSpan, " ")));
 
 			_bVidRend->tryPushFrame(frame);
-		},
-		this
+		}
 	);
 
 	if (!registerResult.succeeded()) {
