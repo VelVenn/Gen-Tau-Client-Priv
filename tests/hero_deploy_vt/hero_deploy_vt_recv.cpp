@@ -70,10 +70,8 @@ auto VTRecv::bindClient(const QString& clientId) -> GMqttAdapter::BindResult
 
 	if (!bindResult.changed()) { return bindResult; }
 
-	auto registerResult = _client.registerTopic(
-		this,
-		"CustomByteBlock",
-		[this](const QByteArray& payload) {
+	auto registerResult =
+		_client.registerTopic(this, "CustomByteBlock", [this](const QByteArray& payload) {
 			Gentau::Topics::CustomByteBlock msg;
 			msg.deserialize(&_serializer, QByteArrayView(payload.constData(), payload.size()));
 
@@ -102,12 +100,12 @@ auto VTRecv::bindClient(const QString& clientId) -> GMqttAdapter::BindResult
 				recvDump.write(reinterpret_cast<const char*>(frame.data()), frame.size());
 			}
 #endif
+
 			// auto dumpSpan = span<const u8>(frame.begin(), frame.end());
 			// tLogInfo("Deploy VT Dump: {}", fmt::format("{:x}", fmt::join(dumpSpan, " ")));
 
 			_bVidRend->tryPushFrame(frame);
-		}
-	);
+		});
 
 	if (!registerResult.succeeded()) {
 		tLogError("Failed to register CustomByteBlock: {}", registerResult.cause.toStdString());
