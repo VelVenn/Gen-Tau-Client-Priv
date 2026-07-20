@@ -24,11 +24,11 @@ GMqttAdapter::GMqttAdapter(QObject* parent) : QObject(parent)
 GMqttAdapter::~GMqttAdapter()
 {
 	shuttingDown.store(true);
-
 	generation.fetch_add(1);
 
-	auto oldSnapshot = snapshot.exchange(nullptr);
+	topicRegister.clear();
 
+	auto oldSnapshot = snapshot.exchange(nullptr);
 	oldSnapshot.reset();
 
 	tLogDebug("Adapter destroyed");
@@ -84,9 +84,6 @@ auto GMqttAdapter::bind(const QString& clientId, const QString& serverURI) -> Bi
 	}
 
 	const quint64 newGen = ++generation;
-
-	topicRegister.clear();
-	tLogDebug("New generation '{}' assigned, old topic register cleared", newGen);
 
 	// --------------------  Qt Signal installation --------------------
 	newClient->onConnected += [this, newGen]() {
@@ -179,6 +176,9 @@ auto GMqttAdapter::bind(const QString& clientId, const QString& serverURI) -> Bi
 	// --------------------  Qt Signal installation --------------------
 
 	auto newSnapshot = std::make_shared<const BindingSnapshot>(newGen, newClient);
+
+	topicRegister.clear();
+	tLogDebug("New generation '{}' assigned, old topic register cleared", newGen);
 
 	snapshot.store(newSnapshot);
 
