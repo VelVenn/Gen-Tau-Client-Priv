@@ -64,7 +64,7 @@ GstElement* TBytesVidRender::choosePrefDecoder(bool& isDynamic)
 {
 	vector<const gchar*> candidates = {
 #ifdef __linux__
-		// "nvh265dec",     // Nvidia
+		"nvh265dec",     // Nvidia
 		// "vah265dec",     // VA-API (Intel/AMD)(high priority in gstreamer)
 		// "vaapih265dec",  // VA-API // Use soft decode for stable
 #elif defined(WIN32)
