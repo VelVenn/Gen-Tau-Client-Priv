@@ -14,7 +14,7 @@
 #define LOCAL  "mqtt://127.0.0.1:3333"
 #define REMOTE "mqtt://192.168.12.1:3333"
 
-#define USE_LOCAL 1
+#define USE_LOCAL 0
 
 #define DUMP_RECV 0
 

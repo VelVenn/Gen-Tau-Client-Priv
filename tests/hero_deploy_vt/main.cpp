@@ -172,8 +172,11 @@ int main(int argc, char* argv[])
 		Qt::QueuedConnection
 	);
 
-	auto*      vtRecv = new VTRecv(bVidRend, &engine);
+	auto* vtRecv = new VTRecv(bVidRend, &engine);
+
+#if defined(USE_LOCAL) && USE_LOCAL == 1
 	TestSender testSender;
+#endif
 
 	engine.rootContext()->setContextProperty("vtRecv", vtRecv);
 	engine.loadFromModule("Gentau.Test.HDVT", "DeployVt");
