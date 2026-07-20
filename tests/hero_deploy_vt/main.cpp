@@ -135,8 +135,6 @@ class TestSender
 
 int main(int argc, char* argv[])
 {
-	TBytesVidRender::initContext(nullptr, nullptr);
-
 	qputenv("QSG_RENDER_LOOP", "basic");
 	qputenv("__GL_SYNC_TO_VBLANK", "0");
 	qputenv("vblank_mode", "0");
@@ -150,6 +148,8 @@ int main(int argc, char* argv[])
 	QSurfaceFormat format = QSurfaceFormat::defaultFormat();
 	format.setSwapInterval(0);
 	QSurfaceFormat::setDefaultFormat(format);
+
+	TBytesVidRender::initContext(nullptr, nullptr);
 
 	QGuiApplication app(argc, argv);
 

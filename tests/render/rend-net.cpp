@@ -61,9 +61,7 @@ class RunningTask : public QRunnable
 
 int main(int argc, char* argv[])
 {
-	vid::initGstContext(&argc, &argv);  // 初始化Gstreamer上下文 (1)
-
-	// 设置环境变量以优化渲染性能和减少延迟 (2)
+	// 设置环境变量以优化渲染性能和减少延迟 (1)
 	qputenv("QSG_RENDER_TIMING", "1");                    // 启用渲染时间测量
 	qputenv("QSG_RENDER_LOOP", "basic");                  // 强制基础渲染循环
 	qputenv("__GL_SYNC_TO_VBLANK", "0");                  // 禁用NVIDIA VSync (if use NVIDIA GPU)
@@ -76,13 +74,15 @@ int main(int argc, char* argv[])
 		qputenv("GST_GL_PLATFORM", "egl");      // 使用EGL作为GST的GL平台
 	}
 	// 仅供参考，但是环境变量的设置必须要在 QGuiApplication 实例化之前进行，否则可能无法生效，甚至导致不稳定行为。
-	// ----------------------------- (2)
+	// ----------------------------- (1)
 
-	// 禁用 OpenGL 交换间隔 (3)
+	// 禁用 OpenGL 交换间隔 (2)
 	QSurfaceFormat format = QSurfaceFormat::defaultFormat();
 	format.setSwapInterval(0);
 	QSurfaceFormat::setDefaultFormat(format);
-	// ------------------ (3)
+	// ------------------ (2)
+
+	vid::initGstContext(&argc, &argv);  // 初始化Gstreamer上下文 (3)
 
 	QGuiApplication app(argc, argv);  // QGuiApplication 必须先于 TimgTrans 创建 (4)
 	QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);  // 强制使用OpenGL渲染 (5)
