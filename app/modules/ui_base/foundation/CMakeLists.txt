@@ -29,5 +29,4 @@ gt_register_qml_mod(
 target_link_libraries(${UI_FOUNDATION_TAR}
   PRIVATE
   Qt6::Quick
-  Gentau::App::UiFoundation
 )
