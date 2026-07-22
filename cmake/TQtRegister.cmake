@@ -325,13 +325,14 @@ function(gt_register_qml_mod)
   qt_add_qml_module(${BACKING_TARGET} ${QT_INVOCATION})
   # ===============
 
-  # 静态 QML 模块的应用链接入口指向插件，其他情况直接指向 backing target
+  # 识别静态 QML 模块，其应用链接入口需要同时带入 backing target 和插件
   set(APP_ALIAS_TARGET "${BACKING_TARGET}")
+  set(IS_STATIC_QML_MODULE FALSE)
   get_target_property(PLUGIN_TARGET "${BACKING_TARGET}" QT_QML_MODULE_PLUGIN_TARGET)
   if(PLUGIN_TARGET AND TARGET "${PLUGIN_TARGET}")
     get_target_property(PLUGIN_TARGET_TYPE "${PLUGIN_TARGET}" TYPE)
     if(PLUGIN_TARGET_TYPE STREQUAL "STATIC_LIBRARY")
-      set(APP_ALIAS_TARGET "${PLUGIN_TARGET}")
+      set(IS_STATIC_QML_MODULE TRUE)
     endif()
   endif()
 
@@ -359,6 +360,13 @@ function(gt_register_qml_mod)
 
   # 普通模块创建或复用链接别名，ROOT 模块沿用应用目标
   if(NOT GT_QML_ROOT)
+    if(IS_STATIC_QML_MODULE AND NOT GT_QML_NO_ALIAS)
+      set(APP_INTERFACE_TARGET "${BACKING_TARGET}-app-interface")
+      add_library(${APP_INTERFACE_TARGET} INTERFACE)
+      target_link_libraries(${APP_INTERFACE_TARGET} INTERFACE ${BACKING_TARGET} ${PLUGIN_TARGET})
+      set(APP_ALIAS_TARGET "${APP_INTERFACE_TARGET}")
+    endif()
+
     _gt_qt_add_module_alias(
       "gt_register_qml_mod"
       "${MODULE_STEM}"
@@ -366,6 +374,22 @@ function(gt_register_qml_mod)
       "${LINK_ALIAS}"
       "${GT_QML_NO_ALIAS}"
     )
+    if(IS_STATIC_QML_MODULE)
+      _gt_qt_add_module_alias(
+        "gt_register_qml_mod"
+        "${MODULE_STEM}"
+        "${BACKING_TARGET}"
+        "${LINK_ALIAS}::Api"
+        "${GT_QML_NO_ALIAS}"
+      )
+      _gt_qt_add_module_alias(
+        "gt_register_qml_mod"
+        "${MODULE_STEM}"
+        "${PLUGIN_TARGET}"
+        "${LINK_ALIAS}::Plugin"
+        "${GT_QML_NO_ALIAS}"
+      )
+    endif()
     _gt_qt_add_module_alias(
       "gt_register_qml_mod"
       "${MODULE_STEM}"
