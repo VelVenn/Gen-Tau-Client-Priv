@@ -1,3 +1,6 @@
+#pragma once
+
+#include <qnamespace.h>
 #include <QEvent>
 #include <QObject>
 #include <QPointF>
@@ -8,7 +11,10 @@
 
 #include "utils/TScheduler.hpp"
 
+#include "message.qpb.h"
+
 #include <atomic>
+#include <optional>
 
 namespace gentau {
 class GInputEventDispatcher : public QObject
@@ -30,15 +36,31 @@ class GInputEventDispatcher : public QObject
 	struct KeyboardEventInfo  // Outside proto's KeyboardMouseControl message
 	{};
 
+	enum class InputStatus : quint32
+	{
+		Unbound = 0,
+		Suspended,
+		Captured
+	};
+
   protected:
 	bool eventFilter(QObject* watched, QEvent* event) override;
 
+  private:
+	void updateInputMode();
+
+	std::optional<quint32> keyMask(Qt::Key key) const noexcept;
+
+	KeyboardMouseControl captureInput();
+
   public:
-	void setWindow(QQuickWindow* window)
-	{
-		Q_ASSERT(window);
-		_window = window;
-	};
+	void attachWindow(QQuickWindow* window);
+
+  public:
+	bool uiBlocked() const noexcept { return _uiBlocked; }
+	void setUiBlocked(bool blocked) noexcept;
+
+	InputStatus inputStatus() const noexcept { return _inputStatus.load(); }
 
   private:
 	QPointer<QQuickWindow> _window;
@@ -59,6 +81,11 @@ class GInputEventDispatcher : public QObject
   private:
 	QPointF _lastMouseGlobalPos{ 0.0, 0.0 };
 	QPointF _anchorGlobalPos{ 0.0, 0.0 };
+
+	bool                     _uiBlocked{ false };
+	std::atomic<InputStatus> _inputStatus{ InputStatus::Unbound };
+
+	std::atomic<quint64> _curGen{ 0 };
 
   public:
 	explicit GInputEventDispatcher(GMqttAdapter& client, QObject* parent = nullptr);
