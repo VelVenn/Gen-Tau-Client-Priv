@@ -33,7 +33,7 @@ class GAppContext : public QObject
 	void finalizeVidRenderersInit(bool success);
 
   public:
-	void bindVidRendToWindow(QQuickWindow* window);
+	void bindToWindow(QQuickWindow* window);
 
   private:
 	TImgTrans::SharedPtr       _imgTrans{ nullptr };

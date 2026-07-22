@@ -72,7 +72,7 @@ void GAppContext::finalizeVidRenderersInit(bool success)
 	}
 }
 
-void GAppContext::bindVidRendToWindow(QQuickWindow* window)
+void GAppContext::bindToWindow(QQuickWindow* window)
 {
 	if (!window) {
 		const auto cause = "Invalid QQuickWindow to bind video renderers: window is nullptr"sv;
