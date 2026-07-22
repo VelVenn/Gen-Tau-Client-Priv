@@ -22,6 +22,8 @@ target_link_libraries(${INPUT_TAR}
     Qt6::Core 
     Qt6::Quick
     
+    Gentau::App::Msg::Api
     Gentau::App::MqttAdapter
+
     Gentau::Utils
 )
