@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QObject>
 #include <QQuickItem>
 #include <QQuickWindow>
@@ -12,17 +14,19 @@
 #include <memory>
 
 namespace gentau {
+
+namespace impl {
+class GAppCompositor;
+};
+
 class GAppContext : public QObject
 {
 	Q_OBJECT
+
   private:
 	class GInitVidRenderTask;
 
   public:
-	TImgTrans&       imgTrans() noexcept { return *_imgTrans; }
-	TBytesVidRender& deployVtRender() noexcept { return *_deployVtRender; }
-	GMqttAdapter&    client() noexcept { return _client; }
-
 	quint64 clientGen() const noexcept { return _clientGen.load(); }
 
   private:
@@ -40,9 +44,12 @@ class GAppContext : public QObject
 	std::atomic<quint64> _clientGen{ 0 };
 
   public:
-	[[nodiscard]] static std::unique_ptr<GAppContext> create(QObject* parent = nullptr);
+	[[nodiscard]] static std::unique_ptr<GAppContext> create()
+	{
+		return std::make_unique<GAppContext>();
+	}
 
 	explicit GAppContext(QObject* parent = nullptr);
-	~GAppContext() override;
+	~GAppContext() override = default;
 };
 }  // namespace gentau

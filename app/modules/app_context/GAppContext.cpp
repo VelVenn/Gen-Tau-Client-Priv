@@ -1,5 +1,6 @@
 #include "runtime/GAppContext.hpp"
 
+#include "adapter/mqtt/GMqttAdapter.hpp"
 #include "utils/TLog.hpp"
 
 #include <stdexcept>
@@ -102,15 +103,32 @@ void GAppContext::bindVidRendToWindow(QQuickWindow* window)
 		throw std::runtime_error(cause.data());
 	}
 
-	tLogDebug("Found QML item 'imgTrans': <{}>", imgTransItem);
+	tLogDebug("Found QML item 'imgTrans': <{}>", static_cast<const void*>(imgTransItem));
 	_imgTrans->renderer->linkSinkWidget(imgTransItem);
 
-	tLogDebug("Found QML item 'deployVt': <{}>", deployVtItem);
+	tLogDebug("Found QML item 'deployVt': <{}>", static_cast<const void*>(deployVtItem));
 	_deployVtRender->linkSinkWidget(deployVtItem);
 
 	window->scheduleRenderJob(
 		new GInitVidRenderTask(this, _imgTrans, _deployVtRender),
 		QQuickWindow::BeforeSynchronizingStage
+	);
+}
+
+GAppContext::GAppContext(QObject* parent) :
+	QObject(parent),
+	_imgTrans(TImgTrans::create()),
+	_deployVtRender(TBytesVidRender::create()),
+	_client(this)
+{
+	connect(
+		&_client,
+		&GMqttAdapter::bindingChanged,
+		this,
+		[this](const QString& newId, const QString& newUri, quint64 newGen) {
+			_clientGen.store(newGen);
+		},
+		Qt::QueuedConnection
 	);
 }
 }  // namespace gentau
