@@ -14,9 +14,12 @@
 #include "message.qpb.h"
 
 #include <atomic>
+#include <memory>
 #include <optional>
 
 namespace gentau {
+class GCursorControl;
+
 class GInputEventDispatcher : public QObject
 {
 	Q_OBJECT
@@ -87,8 +90,7 @@ class GInputEventDispatcher : public QObject
 
 	std::atomic<quint64> _curGen{ 0 };
 
-	// std::unique_ptr<GCursorControl> _cursorControl;
-	// TODO: implement native wayland cursor capture and relative mouse movement recording
+	std::unique_ptr<GCursorControl> _cursorControl;
 
   public:
 	explicit GInputEventDispatcher(GMqttAdapter& client, QObject* parent = nullptr);
