@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qnamespace.h>
+#include <QCursor>
 #include <QEvent>
 #include <QObject>
 #include <QPointF>
@@ -46,6 +46,7 @@ class GInputEventDispatcher : public QObject
 		Suspended,
 		Captured
 	};
+	Q_ENUM(InputStatus)
 
   Q_SIGNALS:
 	void newKeyboardEvent(const KeyboardEventInfo& event);
@@ -53,6 +54,11 @@ class GInputEventDispatcher : public QObject
 
   protected:
 	bool eventFilter(QObject* watched, QEvent* event) override;
+
+  private:
+	bool handleKeyEvent(QKeyEvent* event);
+	bool handleMouseWheelEvent(QWheelEvent* event);
+	bool handleMouseButtonEvent(QMouseEvent* event, bool pressed);
 
   private:
 	void updateInputStatus();
@@ -65,22 +71,24 @@ class GInputEventDispatcher : public QObject
 
 	KeyboardMouseControl captureInput();
 
+  private:
+	void hideCursor();
+	void restoreCursor();
+
+	void updateCursorState();
+
+	void publishKeyboardMouseControl();
+	void startPubTask();
+	void stopPubTask();
+
   public:
 	void attachWindow(QQuickWindow* window);
 
   public:
 	bool inputBlocked() const noexcept { return _inputBlocked.load(); }
-	void setInputBlocked(bool blocked) noexcept;
+	void setInputBlocked(bool blocked);
 
 	InputStatus inputStatus() const noexcept { return _inputStatus.load(); }
-
-  private:
-	QPointer<QQuickWindow>          _window;
-	std::unique_ptr<GCursorControl> _cursorControl;
-
-	GMqttAdapter&       _client;
-	QProtobufSerializer _serializer;
-	TScheduler          _scheduler;
 
   private:
 	std::atomic<qint32>  _mouseZ{ 0 };
@@ -90,13 +98,21 @@ class GInputEventDispatcher : public QObject
 	std::atomic<quint32> _keyboardValue{ 0 };
 
   private:
-	QPointF _lastMouseGlobalPos{ 0.0, 0.0 };
-	QPointF _anchorGlobalPos{ 0.0, 0.0 };
-
 	std::atomic<bool>        _inputBlocked{ false };
 	std::atomic<InputStatus> _inputStatus{ InputStatus::Unbound };
 
-	std::atomic<quint64> _curGen{ 0 };
+	std::optional<QCursor> _savedCursor{ std::nullopt };
+
+	std::atomic<quint64>                  _curGen{ 0 };
+	std::optional<TScheduler::TaskHandle> _taskHandle{ std::nullopt };
+
+  private:
+	QPointer<QQuickWindow>          _window;
+	std::unique_ptr<GCursorControl> _cursorControl;
+
+	GMqttAdapter&       _client;
+	QProtobufSerializer _serializer;
+	TScheduler          _scheduler;
 
   public:
 	explicit GInputEventDispatcher(GMqttAdapter& client, QObject* parent = nullptr);
