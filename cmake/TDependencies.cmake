@@ -9,7 +9,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND EXISTS "/proc/sys/fs/binfmt_misc/WSLIn
   # set(CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH FALSE)
 endif()
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS
+set(GT_QT_COMPONENTS
+  Core
   Quick
   Qml
   QmlModels
@@ -17,6 +18,20 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS
   Protobuf
   ProtobufQuick
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND GT_QT_COMPONENTS WaylandClient)
+endif()
+
+find_package(Qt6 6.8 REQUIRED COMPONENTS
+  ${GT_QT_COMPONENTS}
+)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_package(Wayland REQUIRED COMPONENTS Client)
+  find_package(WaylandScanner REQUIRED)
+endif()
+
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(GST REQUIRED IMPORTED_TARGET gstreamer-1.0>=1.26)

@@ -38,11 +38,7 @@ target_link_libraries(${INPUT_TAR}
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  enable_language(C)
-
-  find_package(Qt6 REQUIRED COMPONENTS WaylandClient)
-  find_package(Wayland REQUIRED COMPONENTS Client)
-  find_package(WaylandScanner REQUIRED)
+  include(cmake/GGenWaylandSource.cmake)
 endif()
 
 add_subdirectory(native)
