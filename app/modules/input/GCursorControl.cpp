@@ -30,12 +30,7 @@ GCursorControl::~GCursorControl() = default;
 
 void GCursorControl::lock()
 {
-	const auto state = lockState();
-	if (!_backend || state == LockState::Unsupported || state == LockState::Pending
-	    || state == LockState::Locked) {
-		return;
-	}
-
+	if (!_backend) { return; }
 	if (_backend->lock()) { updateLockState(LockState::Pending); }
 }
 
