@@ -14,9 +14,10 @@ GCursorControl::GCursorControl(QWindow* window, QObject* parent) : QObject(paren
 {
 #ifdef Q_OS_LINUX
 	if (window && QGuiApplication::platformName().startsWith("wayland", Qt::CaseInsensitive)) {
-		_backend = std::make_unique<GWaylandCursorControl>(
-		  window,
-		  [this](LockState state) { updateLockState(state); });
+		_backend = std::make_unique<GWaylandCursorControl>(window, [this](LockState state) {
+			updateLockState(state);
+		});
+		
 		if (_backend->isLockSupported()) {
 			_lockState.store(LockState::Unlocked, std::memory_order_release);
 		}

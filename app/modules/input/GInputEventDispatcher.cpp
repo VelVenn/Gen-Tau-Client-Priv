@@ -1,8 +1,12 @@
 #include "input/GInputEventDispatcher.hpp"
 #include <qnamespace.h>
+#include <qtprotobuftypes.h>
+#include "input/GCursorControl.hpp"
 
 #include <QThread>
+
 #include <atomic>
+#include <cmath>
 
 #include "utils/TLog.hpp"
 
@@ -51,14 +55,13 @@ optional<quint32> GInputEventDispatcher::keyMask(Qt::Key key) const noexcept
 	}
 }
 
-void GInputEventDispatcher::setUiBlocked(bool blocked) noexcept
+void GInputEventDispatcher::setInputBlocked(bool blocked) noexcept
 {
-	if (_uiBlocked == blocked) { return; }
+	if (_inputBlocked == blocked) { return; }
 
-	_uiBlocked = blocked;
+	_inputBlocked = blocked;
 
-	// unfinished yet
-	// updateInputMode();
+	updateInputStatus();
 }
 
 KeyboardMouseControl GInputEventDispatcher::captureInput()
@@ -79,8 +82,10 @@ KeyboardMouseControl GInputEventDispatcher::captureInput()
 		return msg;
 	}
 
-	msg.setMouseX(_mouseX.exchange(0, memory_order_relaxed));
-	msg.setMouseY(_mouseY.exchange(0, memory_order_relaxed));
+	const auto [dX, dY] = _cursorControl->captureDeltaMovement();
+
+	msg.setMouseX(static_cast<qint32>(round(dX)));
+	msg.setMouseY(static_cast<qint32>(round(-dY)));
 	msg.setMouseZ(_mouseZ.exchange(0, memory_order_relaxed));
 	msg.setKeyboardValue(_keyboardValue.load(memory_order_relaxed));
 	msg.setLeftButtonDown(_leftButtonDown.load(memory_order_relaxed));
@@ -88,6 +93,57 @@ KeyboardMouseControl GInputEventDispatcher::captureInput()
 	msg.setMidButtonDown(_middleButtonDown.load(memory_order_relaxed));
 
 	return msg;
+}
+
+void GInputEventDispatcher::resetInputState()
+{
+	_mouseZ.store(0, memory_order_relaxed);
+	_leftButtonDown.store(false, memory_order_relaxed);
+	_rightButtonDown.store(false, memory_order_relaxed);
+	_middleButtonDown.store(false, memory_order_relaxed);
+	_keyboardValue.store(0, memory_order_relaxed);
+
+	if (_cursorControl) { _cursorControl->captureDeltaMovement(); }
+
+	Q_EMIT newKeyboardEvent(KeyboardEventInfo{});
+}
+
+void GInputEventDispatcher::setInputStatus(InputStatus newStatus)
+{
+	auto oldStatus = _inputStatus.exchange(newStatus, memory_order_relaxed);
+
+	if (oldStatus != newStatus) {
+		tLogTrace(
+			"Input status changed from {} to {}",
+			static_cast<int>(oldStatus),
+			static_cast<int>(newStatus)
+		);
+
+		Q_EMIT inputStatusChanged(newStatus);
+	}
+}
+
+void GInputEventDispatcher::updateInputStatus()
+{
+	if (!_window) {
+		setInputStatus(InputStatus::Unbound);
+		return;
+	}
+
+	const bool shouldCapture = !_inputBlocked.load(std::memory_order_acquire) &&
+							   _window->isActive() && _window->isExposed();
+
+	if (!shouldCapture) {
+		if (_cursorControl) { _cursorControl->unlock(); }
+
+		// restore cursor
+	} else {
+		// hide cursor and try to lock it
+
+		if (_cursorControl && _cursorControl->lockState() == GCursorControl::LockState::Unlocked) {
+			_cursorControl->lock();
+		}
+	}
 }
 
 void GInputEventDispatcher::attachWindow(QQuickWindow* window)
@@ -111,6 +167,15 @@ void GInputEventDispatcher::attachWindow(QQuickWindow* window)
 	_window = window;
 	_window->installEventFilter(this);
 
+	_cursorControl = make_unique<GCursorControl>(window, this);
+
 	// unfinished yet
+}
+
+GInputEventDispatcher::GInputEventDispatcher(GMqttAdapter& client, QObject* parent) :
+	QObject(parent),
+	_client(client)
+{
+	qRegisterMetaType<KeyboardEventInfo>();
 }
 }  // namespace gentau

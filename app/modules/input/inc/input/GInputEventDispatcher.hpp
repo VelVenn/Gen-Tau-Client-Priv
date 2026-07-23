@@ -14,7 +14,6 @@
 #include "message.qpb.h"
 
 #include <atomic>
-#include <memory>
 #include <optional>
 
 namespace gentau {
@@ -25,19 +24,21 @@ class GInputEventDispatcher : public QObject
 	Q_OBJECT
 
   public:
-	struct KeyboardMouseCtrlInfo  // Inside proto's KeyboardMouseControl message
+	enum class KeyboardEventType : quint32
 	{
-		qint32  mouseX{ 0 };
-		qint32  mouseY{ 0 };
-		qint32  mouseZ{ 0 };
-		bool    leftButtonDown{ false };
-		bool    rightButtonDown{ false };
-		quint32 keyboardValue{ 0 };
-		bool    middleButtonDown{ false };
+		Press = 0,
+		Release,
+		Reset
 	};
+	Q_ENUM(KeyboardEventType)
 
 	struct KeyboardEventInfo  // Outside proto's KeyboardMouseControl message
-	{};
+	{
+		Qt::Key               key{ Qt::Key_unknown };
+		KeyboardEventType     type{ KeyboardEventType::Reset };
+		Qt::KeyboardModifiers modifiers{ Qt::NoModifier };
+		quint64               timestamp{ 0 };
+	};
 
 	enum class InputStatus : quint32
 	{
@@ -46,11 +47,19 @@ class GInputEventDispatcher : public QObject
 		Captured
 	};
 
+  Q_SIGNALS:
+	void newKeyboardEvent(const KeyboardEventInfo& event);
+	void inputStatusChanged(InputStatus newStatus);
+
   protected:
 	bool eventFilter(QObject* watched, QEvent* event) override;
 
   private:
-	void updateInputMode();
+	void updateInputStatus();
+
+	void resetInputState();
+
+	void setInputStatus(InputStatus newStatus);
 
 	std::optional<quint32> keyMask(Qt::Key key) const noexcept;
 
@@ -60,21 +69,20 @@ class GInputEventDispatcher : public QObject
 	void attachWindow(QQuickWindow* window);
 
   public:
-	bool uiBlocked() const noexcept { return _uiBlocked.load(); }
-	void setUiBlocked(bool blocked) noexcept;
+	bool inputBlocked() const noexcept { return _inputBlocked.load(); }
+	void setInputBlocked(bool blocked) noexcept;
 
 	InputStatus inputStatus() const noexcept { return _inputStatus.load(); }
 
   private:
-	QPointer<QQuickWindow> _window;
+	QPointer<QQuickWindow>          _window;
+	std::unique_ptr<GCursorControl> _cursorControl;
 
 	GMqttAdapter&       _client;
 	QProtobufSerializer _serializer;
 	TScheduler          _scheduler;
 
   private:
-	std::atomic<qint32>  _mouseX{ 0 };
-	std::atomic<qint32>  _mouseY{ 0 };
 	std::atomic<qint32>  _mouseZ{ 0 };
 	std::atomic<bool>    _leftButtonDown{ false };
 	std::atomic<bool>    _rightButtonDown{ false };
@@ -85,15 +93,15 @@ class GInputEventDispatcher : public QObject
 	QPointF _lastMouseGlobalPos{ 0.0, 0.0 };
 	QPointF _anchorGlobalPos{ 0.0, 0.0 };
 
-	std::atomic<bool>        _uiBlocked{ false };
+	std::atomic<bool>        _inputBlocked{ false };
 	std::atomic<InputStatus> _inputStatus{ InputStatus::Unbound };
 
 	std::atomic<quint64> _curGen{ 0 };
-
-	std::unique_ptr<GCursorControl> _cursorControl;
 
   public:
 	explicit GInputEventDispatcher(GMqttAdapter& client, QObject* parent = nullptr);
 	~GInputEventDispatcher() override;
 };
 }  // namespace gentau
+
+Q_DECLARE_METATYPE(gentau::GInputEventDispatcher::KeyboardEventInfo)
