@@ -57,7 +57,7 @@ class GInputEventDispatcher : public QObject
 	void attachWindow(QQuickWindow* window);
 
   public:
-	bool uiBlocked() const noexcept { return _uiBlocked; }
+	bool uiBlocked() const noexcept { return _uiBlocked.load(); }
 	void setUiBlocked(bool blocked) noexcept;
 
 	InputStatus inputStatus() const noexcept { return _inputStatus.load(); }
@@ -82,10 +82,13 @@ class GInputEventDispatcher : public QObject
 	QPointF _lastMouseGlobalPos{ 0.0, 0.0 };
 	QPointF _anchorGlobalPos{ 0.0, 0.0 };
 
-	bool                     _uiBlocked{ false };
+	std::atomic<bool>        _uiBlocked{ false };
 	std::atomic<InputStatus> _inputStatus{ InputStatus::Unbound };
 
 	std::atomic<quint64> _curGen{ 0 };
+
+	// std::unique_ptr<GCursorControl> _cursorControl;
+	// TODO: implement native wayland cursor capture and relative mouse movement recording
 
   public:
 	explicit GInputEventDispatcher(GMqttAdapter& client, QObject* parent = nullptr);

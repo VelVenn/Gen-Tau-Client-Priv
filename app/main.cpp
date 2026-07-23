@@ -15,9 +15,9 @@ int main(int argc, char* argv[])
 	qputenv("_NET_WM_BYPASS_COMPOSITOR", "1");
 
 #ifdef Q_OS_LINUX
-	qputenv("QT_QPA_PLATFORM", "xcb");
-	qputenv("GST_GL_WINDOW", "x11");
-	qputenv("GST_GL_PLATFORM", "glx");
+	// qputenv("QT_QPA_PLATFORM", "xcb");
+	// qputenv("GST_GL_WINDOW", "x11");
+	// qputenv("GST_GL_PLATFORM", "glx");
 #endif
 
 	QSurfaceFormat format = QSurfaceFormat::defaultFormat();
