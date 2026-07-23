@@ -113,17 +113,13 @@ bool GWaylandCursorControl::lock()
 	_surface = surface;
 
 	if (!_pointer || !_surface || !isLockSupported()) {
-		if (hasLockObject) {
-			notifyLockStateChanged(GCursorControl::LockState::Unlocked);
-		}
+		if (hasLockObject) { notifyLockStateChanged(GCursorControl::LockState::Unlocked); }
 		return false;
 	}
 
 	initializeRelativePointer();
 	if (!QtWayland::zwp_relative_pointer_v1::isInitialized()) {
-		if (hasLockObject) {
-			notifyLockStateChanged(GCursorControl::LockState::Unlocked);
-		}
+		if (hasLockObject) { notifyLockStateChanged(GCursorControl::LockState::Unlocked); }
 		return false;
 	}
 
@@ -133,9 +129,7 @@ bool GWaylandCursorControl::lock()
 		_surface, _pointer, nullptr, QtWayland::zwp_pointer_constraints_v1::lifetime_persistent
 	);
 	if (!lockedPointer) {
-		if (hasLockObject) {
-			notifyLockStateChanged(GCursorControl::LockState::Unlocked);
-		}
+		if (hasLockObject) { notifyLockStateChanged(GCursorControl::LockState::Unlocked); }
 		return false;
 	}
 
@@ -175,7 +169,7 @@ QPointF GWaylandCursorControl::captureDeltaMovement(GCursorControl::MovementMode
 	if (mode == GCursorControl::MovementMode::Unaccelerated) {
 		return { static_cast<qreal>(unacceleratedX / waylandFixedScale),
 				 static_cast<qreal>(unacceleratedY / waylandFixedScale) };
-	}
+	}  // 原始 wl_fixed_t 是一个有符号的 24.8 定点数, 其中低 8 位表示小数部分, 高 24 位表示整数部分. 因此, 为了将其转换为浮点数, 我们需要将其除以 256.0 (即 2^8)
 
 	return { static_cast<qreal>(acceleratedX / waylandFixedScale),
 			 static_cast<qreal>(acceleratedY / waylandFixedScale) };

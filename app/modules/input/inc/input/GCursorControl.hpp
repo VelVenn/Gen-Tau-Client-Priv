@@ -35,7 +35,7 @@ class GCursorControl : public QObject
 	void lockStateChanged(LockState state);
 
   public:
-	void lock();
+	void lock(); // TODO: considering add retry if pending timeout occurs
 	void unlock();
 
 	QPointF captureDeltaMovement(MovementMode mode = MovementMode::Accelerated) noexcept;
