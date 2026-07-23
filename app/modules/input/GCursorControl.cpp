@@ -14,7 +14,12 @@ GCursorControl::GCursorControl(QWindow* window, QObject* parent) : QObject(paren
 {
 #ifdef Q_OS_LINUX
 	if (window && QGuiApplication::platformName().startsWith("wayland", Qt::CaseInsensitive)) {
-		_backend = std::make_unique<GWaylandCursorControl>(window);
+		_backend = std::make_unique<GWaylandCursorControl>(
+		  window,
+		  [this](LockState state) { updateLockState(state); });
+		if (_backend->isLockSupported()) {
+			_lockState.store(LockState::Unlocked, std::memory_order_release);
+		}
 	}
 #else
 	Q_UNUSED(window);
@@ -25,16 +30,36 @@ GCursorControl::~GCursorControl() = default;
 
 void GCursorControl::lock()
 {
-	if (_backend) { _backend->lock(); }
+	const auto state = lockState();
+	if (!_backend || state == LockState::Unsupported || state == LockState::Pending
+	    || state == LockState::Locked) {
+		return;
+	}
+
+	if (_backend->lock()) { updateLockState(LockState::Pending); }
 }
 
 void GCursorControl::unlock()
 {
-	if (_backend) { _backend->unlock(); }
+	if (!_backend || lockState() == LockState::Unsupported) { return; }
+
+	_backend->unlock();
+	updateLockState(LockState::Unlocked);
 }
 
 QPointF GCursorControl::getDeltaMovement(MovementMode mode) noexcept
 {
 	return _backend ? _backend->getDeltaMovement(mode) : QPointF{};
+}
+
+bool GCursorControl::isLockSupported() const noexcept
+{
+	return lockState() != LockState::Unsupported;
+}
+
+void GCursorControl::updateLockState(LockState state)
+{
+	const auto previous = _lockState.exchange(state, std::memory_order_acq_rel);
+	if (previous != state) { Q_EMIT lockStateChanged(state); }
 }
 }  // namespace gentau

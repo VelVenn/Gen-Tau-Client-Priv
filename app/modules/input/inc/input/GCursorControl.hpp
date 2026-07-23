@@ -29,6 +29,7 @@ class GCursorControl : public QObject
 		Pending,
 		Locked
 	};
+	Q_ENUM(LockState)
 
   Q_SIGNALS:
 	void lockStateChanged(LockState state);
@@ -51,6 +52,8 @@ class GCursorControl : public QObject
 	~GCursorControl();
 
   private:
+	void updateLockState(LockState state);
+
 	std::unique_ptr<GCursorControlBackend> _backend;
 
 	std::atomic<LockState> _lockState{ LockState::Unsupported };

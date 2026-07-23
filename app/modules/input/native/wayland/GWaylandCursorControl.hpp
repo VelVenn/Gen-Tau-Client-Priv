@@ -27,11 +27,14 @@ class GWaylandCursorControl final
   , private QtWayland::zwp_relative_pointer_v1
 {
   public:
-	explicit GWaylandCursorControl(QWindow* window);
+	GWaylandCursorControl(QWindow*                 window,
+	                      LockStateChangedCallback lockStateChanged);
 	~GWaylandCursorControl() override;
 
-	void lock() override;
+	bool lock() override;
 	void unlock() override;
+
+	bool isLockSupported() const noexcept override;
 
 	QPointF getDeltaMovement(GCursorControl::MovementMode mode) noexcept override;
 
@@ -46,6 +49,8 @@ class GWaylandCursorControl final
 	void initializeRelativePointer();
 	void setCenterHint();
 
+	void zwp_locked_pointer_v1_locked() override;
+	void zwp_locked_pointer_v1_unlocked() override;
 	void zwp_relative_pointer_v1_relative_motion(uint32_t   utimeHi,
 	                                             uint32_t   utimeLo,
 	                                             wl_fixed_t dx,

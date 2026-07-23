@@ -17,8 +17,11 @@ namespace {
 constexpr double waylandFixedScale = 256.0;
 }  // namespace
 
-GWaylandCursorControl::GWaylandCursorControl(QWindow* window)
-  : _window(window)
+GWaylandCursorControl::GWaylandCursorControl(
+  QWindow*                 window,
+  LockStateChangedCallback lockStateChanged)
+  : GCursorControlBackend(std::move(lockStateChanged))
+  , _window(window)
 {
 	auto* application = qobject_cast<QGuiApplication*>(QCoreApplication::instance());
 	if (!_window || !application) { return; }
@@ -63,22 +66,23 @@ GWaylandCursorControl::~GWaylandCursorControl()
 	if (_display) { wl_display_flush(_display); }
 }
 
-void GWaylandCursorControl::lock()
+bool GWaylandCursorControl::lock()
 {
 	if (!_window || !_display || !_surface || !_pointer
-	    || !QtWayland::zwp_pointer_constraints_v1::isInitialized()
-	    || QtWayland::zwp_locked_pointer_v1::isInitialized()) {
-		return;
+	    || !QtWayland::zwp_pointer_constraints_v1::isInitialized()) {
+		return false;
 	}
 
 	Q_ASSERT(QThread::currentThread() == _window->thread());
+
+	if (QtWayland::zwp_locked_pointer_v1::isInitialized()) { return true; }
 
 	auto* lockedPointer = QtWayland::zwp_pointer_constraints_v1::lock_pointer(
 	  _surface,
 	  _pointer,
 	  nullptr,
 	  QtWayland::zwp_pointer_constraints_v1::lifetime_persistent);
-	if (!lockedPointer) { return; }
+	if (!lockedPointer) { return false; }
 
 	QtWayland::zwp_locked_pointer_v1::init(lockedPointer);
 	setCenterHint();
@@ -88,6 +92,7 @@ void GWaylandCursorControl::lock()
 	_cursorHidden = true;
 
 	wl_display_flush(_display);
+	return true;
 }
 
 void GWaylandCursorControl::unlock()
@@ -103,6 +108,12 @@ void GWaylandCursorControl::unlock()
 	_cursorHidden = false;
 
 	if (_display) { wl_display_flush(_display); }
+}
+
+bool GWaylandCursorControl::isLockSupported() const noexcept
+{
+	return _window && _display && _pointer && _surface
+	       && QtWayland::zwp_pointer_constraints_v1::isInitialized();
 }
 
 QPointF
@@ -186,6 +197,16 @@ void GWaylandCursorControl::setCenterHint()
 	  wl_fixed_from_double(size.width() * 0.5),
 	  wl_fixed_from_double(size.height() * 0.5));
 	wl_surface_commit(_surface);
+}
+
+void GWaylandCursorControl::zwp_locked_pointer_v1_locked()
+{
+	notifyLockStateChanged(GCursorControl::LockState::Locked);
+}
+
+void GWaylandCursorControl::zwp_locked_pointer_v1_unlocked()
+{
+	notifyLockStateChanged(GCursorControl::LockState::Unlocked);
 }
 
 void GWaylandCursorControl::zwp_relative_pointer_v1_relative_motion(
