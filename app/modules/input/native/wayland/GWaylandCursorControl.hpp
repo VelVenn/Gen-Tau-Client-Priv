@@ -2,6 +2,8 @@
 
 #include "native/GCursorControlBackend.hpp"
 
+#include <QWaylandClientExtensionTemplate>
+
 #include "qwayland-pointer-constraints-unstable-v1.h"
 #include "qwayland-relative-pointer-unstable-v1.h"
 
@@ -13,16 +15,30 @@
 
 class QWindow;
 
-struct wl_display;
 struct wl_pointer;
-struct wl_registry;
 struct wl_surface;
 
 namespace gentau {
+class GWaylandRelativePointerManager final
+	: public QWaylandClientExtensionTemplate<GWaylandRelativePointerManager>,
+	  public QtWayland::zwp_relative_pointer_manager_v1
+{
+  public:
+	GWaylandRelativePointerManager();
+	~GWaylandRelativePointerManager() override;
+};
+
+class GWaylandPointerConstraints final
+	: public QWaylandClientExtensionTemplate<GWaylandPointerConstraints>,
+	  public QtWayland::zwp_pointer_constraints_v1
+{
+  public:
+	GWaylandPointerConstraints();
+	~GWaylandPointerConstraints() override;
+};
+
 class GWaylandCursorControl final : public GCursorControlBackend,
-									private QtWayland::zwp_pointer_constraints_v1,
 									private QtWayland::zwp_locked_pointer_v1,
-									private QtWayland::zwp_relative_pointer_manager_v1,
 									private QtWayland::zwp_relative_pointer_v1
 {
   public:
@@ -34,14 +50,10 @@ class GWaylandCursorControl final : public GCursorControlBackend,
 
 	bool isLockSupported() const noexcept override;
 
-	QPointF getDeltaMovement(GCursorControl::MovementMode mode) noexcept override;
+	QPointF captureDeltaMovement(GCursorControl::MovementMode mode) noexcept override;
 
   private:
-	static void registryGlobal(
-		void* data, wl_registry* registry, uint32_t name, const char* interface, uint32_t version
-	);
-	static void registryGlobalRemove(void* data, wl_registry* registry, uint32_t name);
-
+	void handleProtocolAvailabilityChanged();
 	void initializeRelativePointer();
 	void clearDeltaMovement() noexcept;
 	void hideCursor();
@@ -59,9 +71,10 @@ class GWaylandCursorControl final : public GCursorControlBackend,
 	) override;
 
   private:
+	GWaylandRelativePointerManager _relativePointerManager;
+	GWaylandPointerConstraints     _pointerConstraints;
+
 	QPointer<QWindow> _window;
-	wl_display*       _display{ nullptr };
-	wl_registry*      _registry{ nullptr };
 	wl_pointer*       _pointer{ nullptr };
 	wl_surface*       _surface{ nullptr };
 

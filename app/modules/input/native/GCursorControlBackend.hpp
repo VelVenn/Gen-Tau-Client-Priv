@@ -22,7 +22,7 @@ class GCursorControlBackend
 
 	virtual bool isLockSupported() const noexcept = 0;
 
-	virtual QPointF getDeltaMovement(GCursorControl::MovementMode mode) noexcept = 0;
+	virtual QPointF captureDeltaMovement(GCursorControl::MovementMode mode) noexcept = 0;
 
   protected:
 	void notifyLockStateChanged(GCursorControl::LockState state)
