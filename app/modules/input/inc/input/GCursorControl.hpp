@@ -38,7 +38,7 @@ class GCursorControl : public QObject
 	void lock();
 	void unlock();
 
-	QPointF getDeltaMovement(MovementMode mode = MovementMode::Accelerated) noexcept;
+	QPointF captureDeltaMovement(MovementMode mode = MovementMode::Accelerated) noexcept;
 
   public:
 	LockState lockState() const noexcept { return _lockState.load(std::memory_order_acquire); }

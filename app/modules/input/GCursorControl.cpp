@@ -42,9 +42,9 @@ void GCursorControl::unlock()
 	updateLockState(LockState::Unlocked);
 }
 
-QPointF GCursorControl::getDeltaMovement(MovementMode mode) noexcept
+QPointF GCursorControl::captureDeltaMovement(MovementMode mode) noexcept
 {
-	return _backend ? _backend->getDeltaMovement(mode) : QPointF{};
+	return _backend ? _backend->captureDeltaMovement(mode) : QPointF{};
 }
 
 bool GCursorControl::isLockSupported() const noexcept
