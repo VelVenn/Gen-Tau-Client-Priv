@@ -114,7 +114,6 @@ bool GWaylandCursorControl::lock()
 
 	if (!_pointer || !_surface || !isLockSupported()) {
 		if (hasLockObject) {
-			restoreCursor();
 			notifyLockStateChanged(GCursorControl::LockState::Unlocked);
 		}
 		return false;
@@ -123,7 +122,6 @@ bool GWaylandCursorControl::lock()
 	initializeRelativePointer();
 	if (!QtWayland::zwp_relative_pointer_v1::isInitialized()) {
 		if (hasLockObject) {
-			restoreCursor();
 			notifyLockStateChanged(GCursorControl::LockState::Unlocked);
 		}
 		return false;
@@ -136,7 +134,6 @@ bool GWaylandCursorControl::lock()
 	);
 	if (!lockedPointer) {
 		if (hasLockObject) {
-			restoreCursor();
 			notifyLockStateChanged(GCursorControl::LockState::Unlocked);
 		}
 		return false;
@@ -146,8 +143,6 @@ bool GWaylandCursorControl::lock()
 	_lockPending = true;
 	_recordRelativeMotion.store(false, std::memory_order_release);
 	clearDeltaMovement();
-
-	hideCursor();
 
 	return true;
 }
@@ -163,8 +158,6 @@ void GWaylandCursorControl::unlock()
 	if (QtWayland::zwp_locked_pointer_v1::isInitialized()) {
 		QtWayland::zwp_locked_pointer_v1::destroy();
 	}
-
-	restoreCursor();
 }
 
 bool GWaylandCursorControl::isLockSupported() const noexcept
@@ -223,29 +216,11 @@ void GWaylandCursorControl::clearDeltaMovement() noexcept
 	_unacceleratedY.store(0, std::memory_order_relaxed);
 }
 
-void GWaylandCursorControl::hideCursor()
-{
-	if (_cursorHidden || !_window) { return; }
-
-	_savedCursor = _window->cursor();
-	_window->setCursor(Qt::BlankCursor);
-	_cursorHidden = true;
-}
-
-void GWaylandCursorControl::restoreCursor()
-{
-	if (!_cursorHidden) { return; }
-
-	if (_window) { _window->setCursor(_savedCursor); }
-	_cursorHidden = false;
-}
-
 void GWaylandCursorControl::zwp_locked_pointer_v1_locked()
 {
 	_lockPending = false;
 	clearDeltaMovement();
 	_recordRelativeMotion.store(true, std::memory_order_release);
-	hideCursor();
 	notifyLockStateChanged(GCursorControl::LockState::Locked);
 }
 
@@ -254,7 +229,6 @@ void GWaylandCursorControl::zwp_locked_pointer_v1_unlocked()
 	_recordRelativeMotion.store(false, std::memory_order_release);
 	clearDeltaMovement();
 	_lockPending = false;
-	restoreCursor();
 	notifyLockStateChanged(GCursorControl::LockState::Unlocked);
 }
 

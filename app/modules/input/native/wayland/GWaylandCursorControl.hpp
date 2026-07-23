@@ -7,7 +7,6 @@
 #include "qwayland-pointer-constraints-unstable-v1.h"
 #include "qwayland-relative-pointer-unstable-v1.h"
 
-#include <QCursor>
 #include <QPointer>
 
 #include <atomic>
@@ -56,8 +55,6 @@ class GWaylandCursorControl final : public GCursorControlBackend,
 	void handleProtocolAvailabilityChanged();
 	void initializeRelativePointer();
 	void clearDeltaMovement() noexcept;
-	void hideCursor();
-	void restoreCursor();
 
 	void zwp_locked_pointer_v1_locked() override;
 	void zwp_locked_pointer_v1_unlocked() override;
@@ -84,8 +81,6 @@ class GWaylandCursorControl final : public GCursorControlBackend,
 	std::atomic<std::int64_t> _unacceleratedY{ 0 };
 	std::atomic_bool          _recordRelativeMotion{ false };
 
-	QCursor _savedCursor;
-	bool    _cursorHidden{ false };
-	bool    _lockPending{ false };
+	bool _lockPending{ false };
 };
 }  // namespace gentau
