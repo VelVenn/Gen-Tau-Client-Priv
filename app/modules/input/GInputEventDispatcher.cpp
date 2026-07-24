@@ -108,10 +108,16 @@ KeyboardMouseControl GInputEventDispatcher::captureInput()
 		return msg;
 	}
 
-	const auto [dX, dY] = _cursorControl->captureDeltaMovement();
+	if (_cursorControl) {
+		const auto [dX, dY] = _cursorControl->captureDeltaMovement();
 
-	msg.setMouseX(static_cast<qint32>(round(dX)));
-	msg.setMouseY(static_cast<qint32>(round(-dY)));
+		msg.setMouseX(static_cast<qint32>(round(dX)));
+		msg.setMouseY(static_cast<qint32>(round(-dY)));
+	} else {
+		msg.setMouseX(0);
+		msg.setMouseY(0);
+	}
+
 	msg.setMouseZ(_mouseZ.exchange(0, memory_order_relaxed));
 	msg.setKeyboardValue(_keyboardValue.load(memory_order_relaxed));
 	msg.setLeftButtonDown(_leftButtonDown.load(memory_order_relaxed));
@@ -267,7 +273,7 @@ void GInputEventDispatcher::attachWindow(QQuickWindow* window)
 	_window = window;
 	_window->installEventFilter(this);
 
-	_cursorControl = make_unique<GCursorControl>(window, this);
+	_cursorControl = make_unique<GCursorControl>(window);
 
 	connect(
 		_cursorControl.get(),
