@@ -33,4 +33,5 @@ target_link_libraries(${APP_CONTEXT_TAR}
     Gentau::Utils
 
     Gentau::App::MqttAdapter
+    Gentau::App::Input
 )

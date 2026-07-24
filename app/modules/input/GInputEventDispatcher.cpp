@@ -56,11 +56,36 @@ optional<quint32> GInputEventDispatcher::keyMask(Qt::Key key) const noexcept
 	}
 }
 
-void GInputEventDispatcher::setInputBlocked(bool blocked)
+void GInputEventDispatcher::requestInputBlock(QObject* owner)
 {
-	if (_inputBlocked == blocked) { return; }
+	Q_ASSERT(QThread::currentThread() == thread());
+	Q_ASSERT(owner->thread() == thread());
 
-	_inputBlocked = blocked;
+	if (!owner) { return; }
+
+	if (_inputBlockRequests.contains(owner)) { return; }
+
+	auto connection = connect(owner, &QObject::destroyed, this, [this, owner] {
+		if (_inputBlockRequests.remove(owner)) { updateInputStatus(); }
+	});
+
+	_inputBlockRequests.insert(owner, connection);
+
+	updateInputStatus();
+}
+
+void GInputEventDispatcher::releaseInputBlock(QObject* owner)
+{
+	Q_ASSERT(QThread::currentThread() == thread());
+	Q_ASSERT(owner->thread() == thread());
+
+	if (!owner) { return; }
+
+	if (!_inputBlockRequests.contains(owner)) { return; }
+
+	auto connection = _inputBlockRequests.take(owner);
+
+	disconnect(connection);
 
 	updateInputStatus();
 }
@@ -133,7 +158,7 @@ void GInputEventDispatcher::updateInputStatus()
 		return;
 	}
 
-	const bool shouldCapture = !_inputBlocked.load() && _window->isActive() &&
+	const bool shouldCapture = _inputBlockRequests.empty() && _window->isActive() &&
 							   _window->isExposed() && _window->isVisible();
 
 	InputStatus nextStatus = shouldCapture ? InputStatus::Captured : InputStatus::Suspended;

@@ -9,6 +9,8 @@ import Gentau.Foundation
 import Gentau.BotHud
 import Gentau.ConfPanel
 
+import Gentau.Context
+
 Window {
     id: bottomPane
 
@@ -24,13 +26,13 @@ Window {
 
     property bool uiCapturesMouse: false
 
-    MouseArea {
-        id: tempCursorMock
+    // MouseArea {
+    //     id: tempCursorMock
 
-        anchors.fill: parent
-        cursorShape: bottomPane.uiCapturesMouse ? Qt.ArrowCursor : Qt.BlankCursor
-        acceptedButtons: Qt.NoButton
-    }
+    //     anchors.fill: parent
+    //     cursorShape: bottomPane.uiCapturesMouse ? Qt.ArrowCursor : Qt.BlankCursor
+    //     acceptedButtons: Qt.NoButton
+    // }
 
     GstGLQt6VideoItem {
         id: deployVt
@@ -87,13 +89,14 @@ Window {
 
                 initialTabIndex: bottomPane.lastConfTabIndex
 
-                onClosed: confLoader.active = false
+                onClosed: {
+                    confLoader.active = false;
+                }
 
-                onAboutToShow: bottomPane.uiCapturesMouse = true
+                onAboutToShow: Context.requestInputBlock(confPanel)
 
                 onAboutToHide: {
                     bottomPane.lastConfTabIndex = confPanel.currentTabIndex;
-                    bottomPane.uiCapturesMouse = false;
                 }
 
                 Component.onCompleted: confPanel.open()

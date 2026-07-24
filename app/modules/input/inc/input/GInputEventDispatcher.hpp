@@ -1,5 +1,7 @@
 #pragma once
 
+#include <qobject.h>
+#include <qobjectdefs.h>
 #include <QCursor>
 #include <QEvent>
 #include <QObject>
@@ -48,6 +50,8 @@ class GInputEventDispatcher : public QObject
 	};
 	Q_ENUM(InputStatus)
 
+	using InputBlockedId = quint64;
+
   Q_SIGNALS:
 	void newKeyboardEvent(const KeyboardEventInfo& event);
 	void inputStatusChanged(InputStatus newStatus);
@@ -85,8 +89,10 @@ class GInputEventDispatcher : public QObject
 	void attachWindow(QQuickWindow* window);
 
   public:
-	bool inputBlocked() const noexcept { return _inputBlocked.load(); }
 	void setInputBlocked(bool blocked);
+
+	void requestInputBlock(QObject* owner);
+	void releaseInputBlock(QObject* owner);
 
 	InputStatus inputStatus() const noexcept { return _inputStatus.load(); }
 
@@ -98,6 +104,8 @@ class GInputEventDispatcher : public QObject
 	std::atomic<quint32> _keyboardValue{ 0 };
 
   private:
+	QHash<QObject*, QMetaObject::Connection> _inputBlockRequests;
+
 	std::atomic<bool>        _inputBlocked{ false };
 	std::atomic<InputStatus> _inputStatus{ InputStatus::Unbound };
 

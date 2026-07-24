@@ -10,6 +10,8 @@
 
 #include "adapter/mqtt/GMqttAdapter.hpp"
 
+#include "input/GInputEventDispatcher.hpp"
+
 #include <atomic>
 #include <memory>
 
@@ -26,20 +28,24 @@ class GAppContext : public QObject
   private:
 	class GInitVidRenderTask;
 
-  public:
-	quint64 clientGen() const noexcept { return _clientGen.load(); }
-
   private:
 	void finalizeVidRenderersInit(bool success);
 
   public:
+	quint64 clientGen() const noexcept { return _clientGen.load(); }
+
+  public:
 	void bindToWindow(QQuickWindow* window);
+
+	Q_INVOKABLE void requestInputBlock(QObject* owner);
+	Q_INVOKABLE void releaseInputBlock(QObject* owner);
 
   private:
 	TImgTrans::SharedPtr       _imgTrans{ nullptr };
 	TBytesVidRender::SharedPtr _deployVtRender{ nullptr };
 
-	GMqttAdapter _client;
+	GMqttAdapter          _client;
+	GInputEventDispatcher _inputEventDispatcher;
 
 	std::atomic<quint64> _clientGen{ 0 };
 

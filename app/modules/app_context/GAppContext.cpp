@@ -113,13 +113,26 @@ void GAppContext::bindToWindow(QQuickWindow* window)
 		new GInitVidRenderTask(this, _imgTrans, _deployVtRender),
 		QQuickWindow::BeforeSynchronizingStage
 	);
+
+	_inputEventDispatcher.attachWindow(window);
+}
+
+void GAppContext::requestInputBlock(QObject* owner)
+{
+	_inputEventDispatcher.requestInputBlock(owner);
+}
+
+void GAppContext::releaseInputBlock(QObject* owner)
+{
+	_inputEventDispatcher.releaseInputBlock(owner);
 }
 
 GAppContext::GAppContext(QObject* parent) :
 	QObject(parent),
 	_imgTrans(TImgTrans::create()),
 	_deployVtRender(TBytesVidRender::create()),
-	_client(this)
+	_client(this),
+	_inputEventDispatcher(_client, this)
 {
 	connect(
 		&_client,
