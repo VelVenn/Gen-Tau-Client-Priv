@@ -4,6 +4,8 @@ import Gentau.BotHud.Subpane
 
 import Gentau.Settings.UiPref
 
+import Gentau.Context
+
 Item {
     id: root
 
@@ -35,6 +37,8 @@ Item {
 
         anchors.topMargin: 8 * root.scaleFactor
         anchors.leftMargin: 100 * root.scaleFactor
+
+        connService: Context.connService
 
         scaleFactor: root.scaleFactor
     }

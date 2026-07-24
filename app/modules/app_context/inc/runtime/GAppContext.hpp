@@ -27,7 +27,7 @@ class GAppContext : public QObject
 {
 	Q_OBJECT
 
-	Q_PROPERTY(GConnService* connService READ connService CONSTANT FINAL)
+	Q_PROPERTY(gentau::GConnService* connService READ connService CONSTANT FINAL)
 
   private:
 	class GInitVidRenderTask;

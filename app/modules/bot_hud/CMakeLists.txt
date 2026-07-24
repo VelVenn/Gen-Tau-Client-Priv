@@ -50,6 +50,7 @@ gt_register_qml_mod(
     STATIC
     IMPORTS
       TARGET Gentau::Qml::BotHud::Element
+      TARGET Gentau::Qml::Service::Conn
     RESOURCES ${SUB_IMG_FILES}
 )
 
@@ -59,6 +60,7 @@ target_link_libraries(${BOT_HUD_SUB_TAR}
   
   PUBLIC
     ${BOT_HUD_ELEM_TAR}
+    Gentau::App::ConnService::Plugin
 )
 
 gt_register_qml_mod(
@@ -72,6 +74,7 @@ gt_register_qml_mod(
     DEPENDENCIES
       TARGET Gentau::Qml::BotHud::Subpane
       TARGET Gentau::Qml::Settings::UiPref
+      TARGET Gentau::Qml::Context
 )
 
 target_link_libraries(${BOT_HUD_TAR}
@@ -79,4 +82,5 @@ target_link_libraries(${BOT_HUD_TAR}
     Qt6::Quick
     ${BOT_HUD_SUB_TAR}
     Gentau::App::SettingsUiPref
+    Gentau::App::AppContext::Plugin
 )

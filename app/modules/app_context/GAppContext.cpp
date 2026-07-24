@@ -5,10 +5,9 @@
 #include "adapter/mqtt/GMqttAdapter.hpp"
 #include "utils/TLog.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <string_view>
-#include <algorithm>
-
 
 #define T_LOG_TAG "[App Context] "
 
@@ -68,7 +67,7 @@ class GAppContext::GInitVidRenderTask final : public QRunnable
 
 static void tryResizeWindowOnInit(QQuickWindow* window)
 {
-	if(!window) { return; }
+	if (!window) { return; }
 
 	constexpr auto singleQueuedConnection =
 		static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::SingleShotConnection);
