@@ -1,10 +1,14 @@
 #include "runtime/GAppContext.hpp"
 
+#include <QSize>
+
 #include "adapter/mqtt/GMqttAdapter.hpp"
 #include "utils/TLog.hpp"
 
 #include <stdexcept>
 #include <string_view>
+#include <algorithm>
+
 
 #define T_LOG_TAG "[App Context] "
 
@@ -62,6 +66,55 @@ class GAppContext::GInitVidRenderTask final : public QRunnable
 	~GInitVidRenderTask() override = default;
 };
 
+static void tryResizeWindowOnInit(QQuickWindow* window)
+{
+	if(!window) { return; }
+
+	constexpr auto singleQueuedConnection =
+		static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::SingleShotConnection);
+
+	// 首帧完成后触发一次微小 resize。
+	QObject::connect(
+		window,
+		&QQuickWindow::frameSwapped,
+		window,
+		[window] {
+			const QSize targetSize = window->size();
+			const QSize nudgedSize{ std::max(1, targetSize.width() - 2),
+									std::max(1, targetSize.height() - 2) };
+
+			// 等缩小后的尺寸真正生效。
+			QObject::connect(
+				window,
+				&QQuickWindow::widthChanged,
+				window,
+				[window, targetSize, nudgedSize](int width) {
+					if (width != nudgedSize.width()) { return; }
+
+					// 保证 Qt 至少用缩小后的尺寸渲染一帧，然后恢复。
+					QObject::connect(
+						window,
+						&QQuickWindow::frameSwapped,
+						window,
+						[window, targetSize] {
+							window->resize(targetSize);
+							window->update();
+						},
+						singleQueuedConnection
+					);
+
+					window->update();
+				},
+				singleQueuedConnection
+			);
+
+			window->resize(nudgedSize);
+			window->update();
+		},
+		singleQueuedConnection
+	);
+}
+
 void GAppContext::finalizeVidRenderersInit(bool success)
 {
 	if (!success) {
@@ -115,6 +168,8 @@ void GAppContext::bindToWindow(QQuickWindow* window)
 	);
 
 	_inputEventDispatcher.attachWindow(window);
+
+	tryResizeWindowOnInit(window);
 }
 
 void GAppContext::requestInputBlock(QObject* owner)
