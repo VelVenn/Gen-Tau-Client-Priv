@@ -1,6 +1,5 @@
 #include "native/wayland/GWaylandCursorControl.hpp"
 
-#include <qguiapplication_platform.h>
 #include <QGuiApplication>
 #include <QThread>
 #include <QWindow>

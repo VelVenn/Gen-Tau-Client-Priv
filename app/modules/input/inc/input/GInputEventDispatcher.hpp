@@ -1,7 +1,5 @@
 #pragma once
 
-#include <qobject.h>
-#include <qobjectdefs.h>
 #include <QCursor>
 #include <QEvent>
 #include <QObject>
