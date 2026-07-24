@@ -3,6 +3,7 @@
 #include <QScopedValueRollback>
 #include <QThread>
 
+#include "adapter/mqtt/GMqttAdapter.hpp"
 #include "utils/TLog.hpp"
 
 #include <cstring>
@@ -24,6 +25,96 @@ QString GConnService::connModeToString(ConnMode mode) const noexcept
 	}
 }
 
+void GConnService::refreshImgTransPipeline()
+{
+	_imgTrans.renderer->flush();
+	_imgTrans.renderer->restart();
+
+	_vt13Epoch = chrono::steady_clock::now();
+	setVt13Online(false);
+}
+
+void GConnService::refreshDeployVtPipeline()
+{
+	_deployVt.flush();
+	_deployVt.restart();
+
+	_deployVtEpoch = chrono::steady_clock::now();
+	setDeployVtOnline(false);
+}
+
+GMqttAdapter::BindResult GConnService::applyClientBinding(const QString& clientId, ConnMode mode)
+{
+	Q_ASSERT(QThread::currentThread() == thread());
+
+	GMqttAdapter::BindResult cliBindRes;
+	const auto clientUri = (mode == ConnMode::Remote) ? remoteClientUri : localClientUri;
+
+	cliBindRes = _client.bind(clientId, QString::fromLatin1(clientUri));
+	if (cliBindRes.succeeded()) { _lastChoseConnMode = mode; }
+
+	if (cliBindRes.changed()) {
+		tLogInfo(
+			"Mqtt's binding changed to clientId: {}, connMode: {}",
+			clientId.toStdString(),
+			connModeToString(mode).toStdString()
+		);
+	}
+
+	return cliBindRes;
+}
+
+auto GConnService::applyUdpBinding(ConnMode mode) -> UdpConnectionResult
+{
+	Q_ASSERT(QThread::currentThread() == thread());
+
+	const auto udpHost    = (mode == ConnMode::Remote) ? remoteUdpHost : localUdpHost;
+	const auto newUdpAddr = TRecv::V4Addr::create(udpHost, udpPort);
+	const auto curUpdAddr = _imgTrans.receiver->getListenAddr();
+
+	UdpConnectionResult result;
+
+	bool udpAddrNeedChange = false;
+
+	if (!newUdpAddr.has_value()) {
+		tLogWarn(
+			"Invalid UDP host address provided: {}, udp reciever's host will stay unchanged",
+			udpHost
+		);
+	} else {
+		udpAddrNeedChange = !curUpdAddr.has_value() ||
+							curUpdAddr.value().ip != newUdpAddr.value().ip ||
+							curUpdAddr.value().port != newUdpAddr.value().port;
+	}
+
+	if (udpAddrNeedChange) {
+		const int bindResult = _imgTrans.receiver->bindV4(udpPort, udpHost);
+
+		if (bindResult != 0) {
+			tLogError("Failed to bind UDP receiver: [{}] {}", bindResult, strerror(bindResult));
+
+			result.bindResult    = UdpBindResultType::Failed;
+			result.bindErrorCode = bindResult;
+
+			return result;
+		}
+
+		result.bindResult = UdpBindResultType::Changed;
+		tLogInfo("UDP receiver's binding changed to {}:{}", udpHost, udpPort);
+	}
+
+	const int startResult = _imgTrans.receiver->start();
+	result.startResult    = startResult;
+
+	if (startResult != 0) {
+		tLogError("Failed to start UDP receiver: [{}] {}", startResult, strerror(startResult));
+
+		_imgTrans.receiver->stop();
+	}
+
+	return result;
+}
+
 void GConnService::bind(QString clientId, ConnMode mode)
 {
 	Q_ASSERT(QThread::currentThread() == thread());
@@ -40,63 +131,12 @@ void GConnService::bind(QString clientId, ConnMode mode)
 
 	QScopedValueRollback guard(_bindInProgress, true);
 
-	if (_clientId == clientId && _connMode == mode) {
-		tLogWarn("Provided clientId and connMode same as current binding, ignored");
-		return;
-	}
+	auto cliBindRes = applyClientBinding(clientId, mode);
+	auto udpBindRes = applyUdpBinding(mode);
 
-	GMqttAdapter::BindResult cliBindRes;
-	int                      udpBindRes  = 0;
-	int                      udpStartRes = 0;
+	if (cliBindRes.changed()) { refreshDeployVtPipeline(); }
 
-	const auto clientUri = (mode == ConnMode::Remote) ? remoteClientUri : localClientUri;
-	const auto udpHost   = (mode == ConnMode::Remote) ? remoteUdpHost : localUdpHost;
-
-	cliBindRes = _client.bind(clientId, QString::fromLatin1(clientUri));
-	if (cliBindRes.succeeded()) { _lastChoseConnMode = mode; }
-
-	udpBindRes = _imgTrans.receiver->bindV4(udpPort, udpHost);
-
-	if (!cliBindRes.succeeded()) {
-		tLogError("Failed to bind MQTT client: {}", cliBindRes.failedReason.toStdString());
-	} else if (cliBindRes.changed()) {
-		// Refresh the deploy VT pipeline after mqtt client bound.
-		_deployVt.flush();
-		_deployVt.restart();
-
-		_deployVtEpoch = chrono::steady_clock::now();
-		setDeployVtOnline(false);
-	}
-
-	bool udpReady = false;
-	if (udpBindRes != 0) {
-		tLogError("Failed to bind UDP receiver: [{}] {}", udpBindRes, strerror(udpBindRes));
-	} else {
-		// Refresh the imgTrans render pipeline after udp receiver bound.
-		_imgTrans.renderer->flush();
-		_imgTrans.renderer->restart();
-
-		_vt13Epoch = chrono::steady_clock::now();
-		setVt13Online(false);
-
-		udpStartRes = _imgTrans.receiver->start();
-
-		if (udpStartRes != 0) {
-			tLogError("Failed to start UDP receiver: [{}] {}", udpStartRes, strerror(udpStartRes));
-		} else {
-			udpReady = true;
-		}
-	}
-
-	if (cliBindRes.succeeded() && udpReady) {
-		tLogInfo(
-			"Successfully bound MQTT client and UDP receiver for clientId: {}, connMode: {}",
-			clientId.toStdString(),
-			connModeToString(mode).toStdString()
-		);
-	}
-
-	return;
+	if (cliBindRes.changed() || udpBindRes.bindChanged()) { refreshImgTransPipeline(); }
 }
 
 void GConnService::setVt13Online(bool online)
@@ -137,10 +177,10 @@ void GConnService::updateStreamStatus()
 
 void GConnService::setConnectedState()
 {
-	const bool idChanged   = _clientId != _lastChoseClientId;
+	const bool idChanged   = _clientId != _requestedClientId;
 	const bool modeChanged = _connMode != _lastChoseConnMode;
 
-	_clientId = _lastChoseClientId;
+	_clientId = _requestedClientId;
 	_connMode = _lastChoseConnMode;
 
 	if (idChanged) { Q_EMIT clientIdChanged(_clientId); }
@@ -156,6 +196,8 @@ void GConnService::clearConnectedState()
 	_clientId.clear();
 	_connMode = ConnMode::None;
 
+	setDeployVtOnline(false);
+
 	if (idChanged) { Q_EMIT clientIdChanged(_clientId); }
 
 	if (modeChanged) { Q_EMIT connModeChanged(_connMode); }
@@ -165,7 +207,7 @@ void GConnService::onBindingChanged(const QString& newId, const QString&, quint6
 {
 	Q_ASSERT(QThread::currentThread() == thread());
 
-	_lastChoseClientId = newId;
+	_requestedClientId = newId;
 
 	clearConnectedState();
 }

@@ -10,6 +10,7 @@
 #include "img_trans/vid_render/TVidUtils.hpp"
 
 #include <chrono>
+#include <optional>
 
 namespace gentau {
 class GConnService : public QObject
@@ -30,6 +31,29 @@ class GConnService : public QObject
 		None
 	};
 	Q_ENUM(ConnMode)
+
+	enum class UdpBindResultType : quint8
+	{
+		Unchanged = 0,
+		Failed,
+		Changed
+	};
+
+	struct UdpConnectionResult
+	{
+		UdpBindResultType  bindResult{ UdpBindResultType::Unchanged };
+		std::optional<int> bindErrorCode{ std::nullopt };
+		std::optional<int> startResult{ std::nullopt };
+
+		bool bindChanged() const noexcept { return bindResult == UdpBindResultType::Changed; }
+		bool bindFailed() const noexcept { return bindResult == UdpBindResultType::Failed; }
+
+		bool startAttempted() const noexcept { return startResult.has_value(); }
+		bool startSucceeded() const noexcept
+		{
+			return startResult.has_value() && startResult.value() == 0;
+		}
+	};
 
   private:
 	static constexpr auto remoteClientUri = "mqtt://192.168.12.2:3333";
@@ -75,8 +99,14 @@ class GConnService : public QObject
 	void setVt13Online(bool online);
 	void setDeployVtOnline(bool online);
 
+	void refreshImgTransPipeline();
+	void refreshDeployVtPipeline();
+
+	GMqttAdapter::BindResult applyClientBinding(const QString& clientId, ConnMode mode);
+	UdpConnectionResult      applyUdpBinding(ConnMode mode);
+
   private:
-	QString _lastChoseClientId{ "" };
+	QString _requestedClientId{ "" };
 	QString _clientId{ "" };
 
 	ConnMode _lastChoseConnMode{ ConnMode::None };
