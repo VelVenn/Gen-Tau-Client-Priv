@@ -12,6 +12,8 @@
 
 #include "input/GInputEventDispatcher.hpp"
 
+#include "services/conn/GConnService.hpp"
+
 #include <atomic>
 #include <memory>
 
@@ -25,6 +27,8 @@ class GAppContext : public QObject
 {
 	Q_OBJECT
 
+	Q_PROPERTY(GConnService* connService READ connService CONSTANT FINAL)
+
   private:
 	class GInitVidRenderTask;
 
@@ -33,6 +37,8 @@ class GAppContext : public QObject
 
   public:
 	quint64 clientGen() const noexcept { return _clientGen.load(); }
+
+	GConnService* connService() noexcept { return &_connService; }
 
   public:
 	void bindToWindow(QQuickWindow* window);
@@ -48,6 +54,9 @@ class GAppContext : public QObject
 	GInputEventDispatcher _inputEventDispatcher;
 
 	std::atomic<quint64> _clientGen{ 0 };
+
+  private:
+	GConnService _connService;
 
   public:
 	[[nodiscard]] static std::unique_ptr<GAppContext> create()

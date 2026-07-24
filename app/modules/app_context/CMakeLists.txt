@@ -16,6 +16,9 @@ gt_register_qt_lib(
 gt_register_qml_mod(
   TARGET app-context
   URI_SUFFIX Context
+  QT_ARGS
+    DEPENDENCIES
+      TARGET Gentau::Qml::Service::Conn
 )
 
 target_include_directories(${APP_CONTEXT_TAR}
@@ -34,4 +37,6 @@ target_link_libraries(${APP_CONTEXT_TAR}
 
     Gentau::App::MqttAdapter
     Gentau::App::Input
+
+    Gentau::App::ConnService
 )

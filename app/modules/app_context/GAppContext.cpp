@@ -131,8 +131,9 @@ GAppContext::GAppContext(QObject* parent) :
 	QObject(parent),
 	_imgTrans(TImgTrans::create()),
 	_deployVtRender(TBytesVidRender::create()),
-	_client(this),
-	_inputEventDispatcher(_client, this)
+	_client(),
+	_inputEventDispatcher(_client),
+	_connService(*_imgTrans, *_deployVtRender, _client)
 {
 	connect(
 		&_client,
