@@ -20,60 +20,60 @@ QtObject {
         BLUE
     }
 
-    readonly property ListModel comboModel: ListModel{
-        ListElement{
+    readonly property ListModel comboModel: ListModel {
+        ListElement {
             text: "红1 - 英雄"
             idx: 1
         }
-        ListElement{
+        ListElement {
             text: "红2 - 工程"
             idx: 2
         }
-        ListElement{
+        ListElement {
             text: "红3 - 步兵"
             idx: 3
         }
-        ListElement{
+        ListElement {
             text: "红4 - 步兵"
             idx: 4
         }
-        ListElement{
+        ListElement {
             text: "红6 - 无人机"
             idx: 6
         }
-        ListElement{
+        ListElement {
             text: "红7 - 哨兵"
             idx: 7
         }
-        ListElement{
+        ListElement {
             text: "红9 - 雷达"
             idx: 9
         }
-        ListElement{
+        ListElement {
             text: "蓝1 - 英雄"
             idx: 101
         }
-        ListElement{
+        ListElement {
             text: "蓝2 - 工程"
             idx: 102
         }
-        ListElement{
+        ListElement {
             text: "蓝3 - 步兵"
             idx: 103
         }
-        ListElement{
+        ListElement {
             text: "蓝4 - 步兵"
             idx: 104
         }
-        ListElement{
+        ListElement {
             text: "蓝6 - 无人机"
             idx: 106
         }
-        ListElement{
+        ListElement {
             text: "蓝7 - 哨兵"
             idx: 107
         }
-        ListElement{
+        ListElement {
             text: "蓝9 - 雷达"
             idx: 109
         }
@@ -114,7 +114,7 @@ QtObject {
     }
 
     function toBotShooterPerfModeStr(flag) {
-        switch(flag) {
+        switch (flag) {
         case 1:
             return "冷却优先";
         case 2:
@@ -124,12 +124,12 @@ QtObject {
         case 4:
             return "远程优先";
         default:
-            return　"无";
+            return "无";
         }
     }
 
     function toBotChassisPerfModeStr(flag) {
-        switch(flag) {
+        switch (flag) {
         case 1:
             return "血量优先";
         case 2:
@@ -139,12 +139,12 @@ QtObject {
         case 4:
             return "远程优先";
         default:
-            return　"无";
+            return "无";
         }
     }
 
     function toBotName(idx) {
-        switch(idx) {
+        switch (idx) {
         case 1:
         case 101:
             return '英雄';
@@ -176,7 +176,7 @@ QtObject {
     }
 
     function toBotNameEng(idx) {
-        switch(idx) {
+        switch (idx) {
         case 1:
         case 101:
             return 'Hero';
@@ -208,7 +208,7 @@ QtObject {
     }
 
     function toBotAvatarIdxString(idx) {
-        switch(idx) {
+        switch (idx) {
         case 1:
         case 101:
             return 'Hero';
@@ -240,50 +240,33 @@ QtObject {
     }
 
     function toBotCampAndIdxStr(idx) {
-        switch(idx) {
-        case 1:
-            return 'R1';
-        case 2:
-            return 'R2';
-        case 3:
-            return 'R3';
-        case 4:
-            return 'R4';
-        case 5:
-            return 'R5';
-        case 6:
-            return 'R6';
-        case 7:
-            return 'R7';
-        case 8:
-            return 'R8';
-        case 9:
-            return 'R9';
-        case 101:
-            return 'B1';
-        case 102:
-            return 'B2';
-        case 103:
-            return 'B3';
-        case 104:
-            return 'B4';
-        case 105:
-            return 'B5';
-        case 106:
-            return 'B6';
-        case 107:
-            return 'B7';
-        case 108:
-            return 'B8';
-        case 109:
-            return 'B9';
-        default:
-            return 'None';
+        if (idx >= 1 && idx <= 9) {
+            return "R" + idx;
         }
+
+        if (idx >= 101 && idx <= 109) {
+            return "B" + (idx - 100);
+        }
+
+        return "None";
+    }
+
+    function idStrToBotIdx(idStr) {
+        const idx = Number(idStr);
+
+        if (!Number.isInteger(idx)) {
+            return 0;
+        }
+
+        if ((idx >= 1 && idx <= 9) || (idx >= 101 && idx <= 109)) {
+            return idx;
+        }
+
+        return 0;
     }
 
     function toBotType(idx) {
-        switch(idx) {
+        switch (idx) {
         case 1:
         case 101:
             return BotMeta.BotType.HERO;
@@ -315,51 +298,29 @@ QtObject {
     }
 
     function toRealBotIdx(idx) {
-        switch(idx) {
-        case 1:
-        case 101:
-            return 1;
-        case 2:
-        case 102:
-            return 2;
-        case 3:
-        case 103:
-            return 3;
-        case 4:
-        case 104:
-            return 4;
-        case 5:
-        case 105:
-            return 5;
-        case 6:
-        case 106:
-            return 6;
-        case 7:
-        case 107:
-            return 7;
-        case 8:
-        case 108:
-            return 8;
-        case 9:
-        case 109:
-            return 9;
-        default:
-            return 0;
+        if (idx >= 1 && idx <= 9) {
+            return idx;
         }
+
+        if (idx >= 101 && idx <= 109) {
+            return idx - 100;
+        }
+
+        return 0;
     }
 
     function toBotCamp(idx) {
-        if(idx >= 1 && idx <= 11) {
-            return BotMeta.BotCamp.RED
+        if (idx >= 1 && idx <= 11) {
+            return BotMeta.BotCamp.RED;
         } else if (idx >= 101 && idx <= 111) {
-            return BotMeta.BotCamp.BLUE
+            return BotMeta.BotCamp.BLUE;
         }
 
-        return BotMeta.BotCamp.UNKNOWN
+        return BotMeta.BotCamp.UNKNOWN;
     }
 
     function toBotLvlRomaString(lv) {
-        switch(lv) {
+        switch (lv) {
         case 1:
             return 'I';
         case 2:

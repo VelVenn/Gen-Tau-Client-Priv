@@ -15,6 +15,7 @@ gt_register_qml_mod(
     IMPORTS
       TARGET Gentau::Qml::Foundation
       TARGET Gentau::Qml::ConfPanel::Element
+      TARGET Gentau::Qml::Service::Conn
 )
 
 target_link_libraries(${CONF_PANEL_SUB_TAR}
@@ -23,4 +24,5 @@ target_link_libraries(${CONF_PANEL_SUB_TAR}
   PUBLIC
     Gentau::App::UiFoundation
     Gentau::App::ConfPanelElem
+    Gentau::App::ConnService::Plugin
 )

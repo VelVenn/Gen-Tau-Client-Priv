@@ -13,6 +13,8 @@ import Gentau.ConfPanel.Subpane
 
 import Gentau.Settings.UiPref
 
+import Gentau.Context
+
 Popup {
     id: root
     // --- 定位 ---
@@ -156,6 +158,8 @@ Popup {
 
                     BotConfig {
                         id: botConfig
+
+                        connService: Context.connService
                     }
 
                     InterfaceConfig {

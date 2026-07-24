@@ -18,7 +18,7 @@ Window {
     height: 1080
     visible: true
 
-    visibility: Window.FullScreen
+    // visibility: Window.FullScreen
 
     color: Qt.lighter(Style.grayBlue, 2.0)
 

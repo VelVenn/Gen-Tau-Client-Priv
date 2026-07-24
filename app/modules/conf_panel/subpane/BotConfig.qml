@@ -5,18 +5,23 @@ import QtQuick.Layouts
 import Gentau.Foundation
 import Gentau.ConfPanel.Element
 
+import Gentau.Service.Conn
+
 ScrollView {
     id: root
 
     clip: true
 
-    property int curBotIdx: 0
-    property int curConnMode: 0
+    required property ConnService connService
+
+    readonly property int curBotIdx: BotMeta.idStrToBotIdx(root.connService.clientId)
+
+    readonly property int curConnMode: root.connService.connMode
 
     property int curShooterPerfMode: 0
     property int curChassisPerfMode: 0
 
-    component RootGroupBoxBg : Rectangle {
+    component RootGroupBoxBg: Rectangle {
         color: Qt.darker(Style.grayBlue, 1.1)
         border.color: Qt.darker(Style.grayBlue, 1.5)
         border.width: 2
@@ -29,7 +34,7 @@ ScrollView {
         readonly property string curIdxAbbrStr: BotMeta.toBotCampAndIdxStr(root.curBotIdx)
 
         readonly property color curCampColor: {
-            switch(BotMeta.toBotCamp(root.curBotIdx)) {
+            switch (BotMeta.toBotCamp(root.curBotIdx)) {
             case BotMeta.BotCamp.RED:
                 return Qt.lighter(Style.redColor, 1.2);
             case BotMeta.BotCamp.BLUE:
@@ -39,28 +44,33 @@ ScrollView {
             }
         }
 
-        readonly property string curConnModeStr: ConnState.connModeToLiteral(root.curConnMode)
+        readonly property string curConnModeStr:
+            root.connService.connModeToString(root.curConnMode)
 
         readonly property color curConnModeColor: {
-            switch(root.curConnMode) {
-            case ConnState.Flag.REMOTE:
-            case ConnState.Flag.LOCAL:
+            switch (root.curConnMode) {
+            case ConnService.ConnMode.Remote:
+            case ConnService.ConnMode.Local:
                 return Style.lightGreen;
             default:
-                return Style.lightDirt
+                return Style.lightDirt;
             }
         }
 
-        readonly property int connTabChoseMode: connModeTab.currentIndex + 1
+        readonly property int selectedConnMode: {
+            return connModeTab.currentIndex === 0
+                ? ConnService.ConnMode.Remote
+                : ConnService.ConnMode.Local;
+        }
 
         readonly property bool showPerformCards: {
-            let botIdx = idxCombo.currentValue
+            let botIdx = idxCombo.currentValue;
 
             return [1, 101, 3, 103, 4, 104].includes(botIdx);
         }
 
         readonly property int curPerformCardsPage: {
-            let botIdx = idxCombo.currentValue
+            let botIdx = idxCombo.currentValue;
 
             if (botIdx === 1 || botIdx === 101)
                 return 0;
@@ -69,11 +79,11 @@ ScrollView {
         }
 
         readonly property int initIdxComboVal: {
-            return root.curBotIdx !== 0 ? root.curBotIdx : 1
+            return root.curBotIdx !== 0 ? root.curBotIdx : 1;
         }
 
         readonly property int initConnTabIdx: {
-            return root.curConnMode === 2 ? 1 : 0
+            return root.curConnMode === ConnService.ConnMode.Local ? 1 : 0;
         }
 
         readonly property int heroPerformTabChoseMode: {
@@ -84,28 +94,28 @@ ScrollView {
         }
 
         readonly property int initHeroPerfTabIdx: {
-            if(root.curShooterPerfMode === BotMeta.shooterPerformMode.HeroRemote)
+            if (root.curShooterPerfMode === BotMeta.shooterPerformMode.HeroRemote)
                 return 1;
 
             return 0;
         }
 
         readonly property int initInfanShooterTabIdx: {
-            if(root.curShooterPerfMode === BotMeta.shooterPerformMode.Burst)
+            if (root.curShooterPerfMode === BotMeta.shooterPerformMode.Burst)
                 return 1;
 
             return 0;
         }
 
         readonly property int initInfanChassisTabIdx: {
-            if(root.curChassisPerfMode === BotMeta.chassisPerformMode.Power)
+            if (root.curChassisPerfMode === BotMeta.chassisPerformMode.Power)
                 return 1;
 
             return 0;
         }
 
         readonly property string curHeroPerfModeStr: {
-            if(root.curShooterPerfMode < 3) {
+            if (root.curShooterPerfMode < 3) {
                 return "无";
             }
 
@@ -113,7 +123,7 @@ ScrollView {
         }
 
         readonly property string curInfanShooterPerfModeStr: {
-            if(root.curShooterPerfMode > 2) {
+            if (root.curShooterPerfMode > 2) {
                 return "无";
             }
 
@@ -121,7 +131,7 @@ ScrollView {
         }
 
         readonly property string curInfanChassisPerfModeStr: {
-            if(root.curChassisPerfMode > 2) {
+            if (root.curChassisPerfMode > 2) {
                 return "无";
             }
 
@@ -129,7 +139,7 @@ ScrollView {
         }
     }
 
-    ColumnLayout{
+    ColumnLayout {
         id: bottomLayout
 
         width: root.availableWidth
@@ -166,10 +176,10 @@ ScrollView {
                     model: BotMeta.comboModel
 
                     Component.onCompleted: {
-                        var targetIdx = idxCombo.indexOfValue(param.initIdxComboVal)
+                        var targetIdx = idxCombo.indexOfValue(param.initIdxComboVal);
 
                         if (targetIdx !== -1) {
-                            idxCombo.currentIndex = targetIdx
+                            idxCombo.currentIndex = targetIdx;
                         }
                     }
                 }
@@ -203,7 +213,7 @@ ScrollView {
                     }
 
                     Component.onCompleted: {
-                        connModeTab.currentIndex = param.initConnTabIdx
+                        connModeTab.currentIndex = param.initConnTabIdx;
                     }
                 }
 
@@ -229,7 +239,6 @@ ScrollView {
 
                         statusTextColor: param.curCampColor
                     }
-
 
                     RectLitStatusBadge {
                         id: curConnModeBadge
@@ -257,6 +266,17 @@ ScrollView {
                         font.bold: true
 
                         baseBorderColor: Style.lightGreen
+
+                        onClicked: {
+                            if (idxCombo.currentIndex < 0) {
+                                return;
+                            }
+
+                            root.connService.bind(
+                                idxCombo.currentValue.toString(),
+                                param.selectedConnMode
+                            );
+                        }
                     }
                 }
             }
@@ -314,7 +334,7 @@ ScrollView {
                         }
 
                         Component.onCompleted: {
-                            heroPerformTab.currentIndex = param.initHeroPerfTabIdx
+                            heroPerformTab.currentIndex = param.initHeroPerfTabIdx;
                         }
                     }
 
@@ -403,7 +423,7 @@ ScrollView {
                         }
 
                         Component.onCompleted: {
-                            infanShooterPerfTab.currentIndex = param.initInfanShooterTabIdx
+                            infanShooterPerfTab.currentIndex = param.initInfanShooterTabIdx;
                         }
                     }
 
@@ -438,7 +458,7 @@ ScrollView {
                         }
 
                         Component.onCompleted: {
-                            infanChassisPerfTab.currentIndex = param.initInfanChassisTabIdx
+                            infanChassisPerfTab.currentIndex = param.initInfanChassisTabIdx;
                         }
                     }
 
