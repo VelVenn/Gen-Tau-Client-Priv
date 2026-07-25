@@ -9,6 +9,7 @@ gt_register_qml_mod(
 gt_register_protobuf_mod(
   TARGET msg
   NO_ALIAS
+  QML
   PROTO_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/message.proto
   QT_ARGS
