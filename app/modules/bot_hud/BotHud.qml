@@ -26,6 +26,8 @@ Item {
 
         scaleFactor: root.scaleFactor
 
+        globalStatus: Context.hudModel.globalStatus
+
         // transformOrigin: Item.Bottom
     }
 

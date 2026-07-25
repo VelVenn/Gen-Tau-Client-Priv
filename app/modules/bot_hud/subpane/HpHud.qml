@@ -13,6 +13,8 @@ import Gentau.Message
 Item {
     id: root
 
+    property real scaleFactor: 1.0
+
     required property GlobalStatus globalStatus
 
     readonly property globalUnitStatus unitStatus: globalStatus.unitStatus
@@ -20,13 +22,11 @@ Item {
 
     property bool isOurRed: true
 
-    property real scaleFactor: 1.0
-
     // Our Data Properties
-    property real ourBaseHp: unitStatus.baseHealth
-    property real ourBaseMaxHp: 5000
-    property real ourBaseDef: unitStatus.baseShield
-    property int ourBaseStatus: {
+    readonly property real ourBaseHp: unitStatus.baseHealth
+    readonly property real ourBaseMaxHp: 5000
+    readonly property real ourBaseDef: unitStatus.baseShield
+    readonly property int ourBaseStatus: {
         if (root.globalStatus.online) {
             return root.unitStatus.baseStatus;
         }
@@ -34,25 +34,43 @@ Item {
         return BaseMeta.BaseStatus.ARMOR_CLOSED;
     }
 
-    property real ourOutpostHp: 1500
-    property real ourOutpostMaxHp: 1500
-    property real ourOutpostDef: 0
-    property int ourOutpostStatus: BaseMeta.OutpostStatus.ARMOR_IDLE
+    readonly property real ourOutpostHp: unitStatus.outpostHealth
+    readonly property real ourOutpostMaxHp: 1500
+    readonly property real ourOutpostDef: 0
+    readonly property int ourOutpostStatus: {
+        if (root.globalStatus.online) {
+            return root.unitStatus.outpostStatus
+        }
 
-    property int ourScore: 0
+        return BaseMeta.OutpostStatus.ARMOR_IDLE
+    }
+
+    readonly property int ourScore: 0
 
     // Their Data Properties
-    property real theirBaseHp: 5000
-    property real theirBaseMaxHp: 5000
-    property real theirBaseDef: 150
-    property int theirBaseStatus: BaseMeta.BaseStatus.ARMOR_CLOSED
+    readonly property real theirBaseHp: unitStatus.enemyBaseHealth
+    readonly property real theirBaseMaxHp: 5000
+    readonly property real theirBaseDef: unitStatus.enemyBaseShield
+    readonly property int theirBaseStatus: {
+        if (root.globalStatus.online) {
+            return root.unitStatus.enemyBaseStatus;
+        }
 
-    property real theirOutpostHp: 1500
-    property real theirOutpostMaxHp: 1500
-    property real theirOutpostDef: 0
-    property int theirOutpostStatus: BaseMeta.OutpostStatus.ARMOR_IDLE
+        return BaseMeta.BaseStatus.ARMOR_CLOSED;
+    }
 
-    property int theirScore: 0
+    readonly property real theirOutpostHp: unitStatus.enemyOutpostHealth
+    readonly property real theirOutpostMaxHp: 1500
+    readonly property real theirOutpostDef: 0
+    readonly property int theirOutpostStatus: {
+        if (root.globalStatus.online) {
+            return root.unitStatus.enemyOutpostStatus;
+        }
+
+        return BaseMeta.OutpostStatus.ARMOR_IDLE;
+    }
+
+    readonly property int theirScore: 0
 
     property string centralTimeText: '0:00'
     property string gameCountText: '- / -'
