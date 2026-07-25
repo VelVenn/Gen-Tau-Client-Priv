@@ -18,6 +18,7 @@ class GConnService : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(QString clientId READ clientId NOTIFY clientIdChanged)
+	Q_PROPERTY(QString requestedId READ requestedId NOTIFY requestedIdChanged)
 	Q_PROPERTY(ConnMode connMode READ connMode NOTIFY connModeChanged)
 
 	Q_PROPERTY(bool vt13Online READ vt13Online NOTIFY vt13OnlineChanged)
@@ -68,6 +69,7 @@ class GConnService : public QObject
 
   Q_SIGNALS:
 	void clientIdChanged(QString newId);
+	void requestedIdChanged(QString newId);
 	void connModeChanged(ConnMode newMode);
 
 	void vt13OnlineChanged(bool online);
@@ -80,6 +82,7 @@ class GConnService : public QObject
 
   public:
 	QString  clientId() const noexcept { return _clientId; }
+	QString  requestedId() const noexcept { return _requestedClientId; }
 	ConnMode connMode() const noexcept { return _connMode; }
 
 	bool vt13Online() const noexcept { return _vt13Online; }
@@ -93,6 +96,8 @@ class GConnService : public QObject
 
 	void setConnectedState();
 	void clearConnectedState();
+
+	void setRequestedClientId(const QString& id);
 
 	void updateStreamStatus();
 

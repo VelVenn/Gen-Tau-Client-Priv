@@ -155,6 +155,14 @@ void GConnService::setDeployVtOnline(bool online)
 	Q_EMIT deployVtOnlineChanged(online);
 }
 
+void GConnService::setRequestedClientId(const QString& id)
+{
+	if (_requestedClientId == id) { return; }
+
+	_requestedClientId = id;
+	Q_EMIT requestedIdChanged(id);
+}
+
 void GConnService::updateStreamStatus()
 {
 	const auto now      = chrono::steady_clock::now();
@@ -207,7 +215,7 @@ void GConnService::onBindingChanged(const QString& newId, const QString&, quint6
 {
 	Q_ASSERT(QThread::currentThread() == thread());
 
-	_requestedClientId = newId;
+	setRequestedClientId(newId);
 
 	clearConnectedState();
 }
