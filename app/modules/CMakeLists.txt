@@ -1,3 +1,4 @@
+# ==== Basic functional modules ====
 add_subdirectory(core_adapter)
 
 add_subdirectory(interfaces)
@@ -5,7 +6,9 @@ add_subdirectory(interfaces)
 add_subdirectory(settings)
 
 add_subdirectory(input)
+# ==== Basic functional modules ====
 
+add_subdirectory(models)
 add_subdirectory(services)
 
 add_subdirectory(app_context)
