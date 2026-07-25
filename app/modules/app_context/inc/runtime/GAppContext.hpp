@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QProtobufSerializer>
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QRunnable>
@@ -38,13 +39,14 @@ class GAppContext : public QObject
   public:
 	quint64 clientGen() const noexcept { return _clientGen.load(); }
 
-	GConnService* connService() noexcept { return &_connService; }
-
   public:
 	void bindToWindow(QQuickWindow* window);
 
 	Q_INVOKABLE void requestInputBlock(QObject* owner);
 	Q_INVOKABLE void releaseInputBlock(QObject* owner);
+
+  private:
+	GConnService* connService() noexcept { return &_connService; }
 
   private:
 	TImgTrans::SharedPtr       _imgTrans{ nullptr };

@@ -19,6 +19,7 @@ gt_register_qml_mod(
   QT_ARGS
     DEPENDENCIES
       TARGET Gentau::Qml::Service::Conn
+      TARGET Gentau::Qml::Message
 )
 
 target_include_directories(${APP_CONTEXT_TAR}
@@ -39,4 +40,5 @@ target_link_libraries(${APP_CONTEXT_TAR}
     Gentau::App::Input
 
     Gentau::App::ConnService
+    Gentau::App::Msg
 )
