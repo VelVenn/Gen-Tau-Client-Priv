@@ -20,4 +20,5 @@ target_link_libraries(${MSG_TAR}
   PUBLIC
     Qt6::Qml
     Qt6::Protobuf
+    Qt6::ProtobufQuick
 )
