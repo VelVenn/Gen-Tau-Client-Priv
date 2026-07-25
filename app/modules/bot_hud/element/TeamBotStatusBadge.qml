@@ -31,7 +31,7 @@ Item {
         property color baseColor: camp === BotMeta.BotCamp.RED ? Style.redColor : Style.blueColor
 
         property real displayHp: {
-            if (root.botHp < 0) { return 0 }
+            if (root.botHp <= 0) { return 0 }
 
             return Math.max(1, Math.floor(root.botHp))
         }

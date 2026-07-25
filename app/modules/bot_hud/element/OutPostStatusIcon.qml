@@ -55,6 +55,8 @@ HGradIconParal {
 
         easing.type: Easing.Linear
         loops: Animation.Infinite
+
+        onStopped: root.iconRotation = 0.0
     }
 
     SequentialAnimation {
