@@ -9,8 +9,18 @@ import Gentau.Context
 Item {
     id: root
 
-    layer.enabled: true
-    layer.samples: 4
+    // layer.enabled: true
+    // layer.samples: 4
+
+    readonly property int ourBotIdx: BotMeta.idStrToBotIdx(Context.connService.requestedId)
+
+    readonly property int ourCamp: BotMeta.toBotCamp(root.ourBotIdx)
+
+    readonly property bool hasKnownCamp: root.ourCamp !== BotMeta.BotCamp.UNKNOWN
+
+    readonly property int displayOurCamp: root.hasKnownCamp ? root.ourCamp : BotMeta.BotCamp.RED
+
+    readonly property bool isOurRed: root.displayOurCamp === BotMeta.BotCamp.RED
 
     property real scaleFactor: 1.0
 
@@ -27,6 +37,8 @@ Item {
         scaleFactor: root.scaleFactor
 
         globalStatus: Context.hudModel.globalStatus
+
+        isOurRed: root.isOurRed
 
         // transformOrigin: Item.Bottom
     }
@@ -48,6 +60,8 @@ Item {
     EcoHud {
         id: topEcoHud
 
+        globalStatus: Context.hudModel.globalStatus
+
         isOurRed: topHpHud.isOurRed
 
         anchors.top: topHpHud.bottom
@@ -66,6 +80,10 @@ Item {
 
     TeamBotStatusPane {
         id: teamBotsStat
+
+        globalStatus: Context.hudModel.globalStatus
+
+        ourCamp: root.displayOurCamp
 
         anchors.horizontalCenter: topEcoHud.horizontalCenter
         anchors.top: topHpHud.bottom

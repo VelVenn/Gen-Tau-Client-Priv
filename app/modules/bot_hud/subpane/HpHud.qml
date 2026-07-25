@@ -16,11 +16,10 @@ Item {
     property real scaleFactor: 1.0
 
     required property GlobalStatus globalStatus
+    required property bool isOurRed
 
     readonly property globalUnitStatus unitStatus: globalStatus.unitStatus
     readonly property globalLogisticsStatus logisticsStatus: globalStatus.logisticsStatus
-
-    property bool isOurRed: true
 
     // Our Data Properties
     readonly property real ourBaseHp: unitStatus.baseHealth

@@ -4,21 +4,28 @@ import Gentau.Foundation
 import Gentau.BasicWidgets
 import Gentau.BotHud.Element
 
+import Gentau.Model.GlobalStatus
+import Gentau.Message
+
 Item {
     id: root
 
-    property bool isOurRed: true
+    required property GlobalStatus globalStatus
 
-    property int ourEco: 0
+    required property bool isOurRed
+
+    readonly property globalLogisticsStatus logisticsStatus: globalStatus.logisticsStatus
+
+    property int ourEco: logisticsStatus.remainingEconomy
     // property int theirEco: 100
 
-    property real ourFortOccupiedSec: 0.0
-    property real theirFortOccupiedSec: 0.0
+    readonly property int ourFortOccupiedSec: globalStatus.ourFortOccupiedSec
+    readonly property int theirFortOccupiedSec: globalStatus.theirFortOccupiedSec
 
-    property real maxFortOccupiedSec: 20.0
+    readonly property int maxFortOccupiedSec: 20
 
-    property color ourColor: isOurRed ? Style.redColor : Style.blueColor
-    property color theirColor: !isOurRed ? Style.redColor : Style.blueColor
+    readonly property color ourColor: isOurRed ? Style.redColor : Style.blueColor
+    readonly property color theirColor: !isOurRed ? Style.redColor : Style.blueColor
 
     property real scaleFactor: 1.0
 

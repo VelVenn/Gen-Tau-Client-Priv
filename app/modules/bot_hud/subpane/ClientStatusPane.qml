@@ -8,9 +8,7 @@ Item {
 
     required property ConnService connService
 
-    readonly property bool brokerOnline: {
-        root.connService.clientId !== "";
-    }
+    readonly property bool brokerOnline: root.connService.clientId !== ""
     readonly property bool vt13Online: connService.vt13Online
     readonly property bool deployVtOnline: connService.deployVtOnline
 

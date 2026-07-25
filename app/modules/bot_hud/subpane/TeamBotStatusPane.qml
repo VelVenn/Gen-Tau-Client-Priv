@@ -5,12 +5,19 @@ import QtQuick
 import Gentau.Foundation
 import Gentau.BotHud.Element
 
+import Gentau.Model.GlobalStatus
+import Gentau.Message
+
 Item {
     id: root
 
-    property int ourCamp: BotMeta.BotCamp.RED
+    required property GlobalStatus globalStatus
 
-    property var botHpData: null
+    required property int ourCamp
+
+    readonly property globalUnitStatus unitStatus: globalStatus.unitStatus
+
+    readonly property list<int> botHpData: unitStatus.robotHealth
 
     property real scaleFactor: 1.0
 
@@ -20,8 +27,8 @@ Item {
     QtObject {
         id: param
 
-        readonly property var redBotIdx: [1, 2, 3, 4, 7]
-        readonly property var blueBotIdx: [101, 102, 103, 104, 107]
+        readonly property list<int> redBotIdx: [1, 2, 3, 4, 7]
+        readonly property list<int> blueBotIdx: [101, 102, 103, 104, 107]
 
         readonly property var ourBotIdx: root.ourCamp === BotMeta.BotCamp.RED
                                          ? redBotIdx : blueBotIdx
@@ -29,11 +36,11 @@ Item {
         readonly property var theirBotIdx: root.ourCamp === BotMeta.BotCamp.RED
                                            ? blueBotIdx : redBotIdx
 
-        property var mockHpData:
-            [250, 250, 250, 250, 250,
-            250, 250, 250, 250, 250]
+        property list<int> mockHpData:
+            [0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0]
 
-        readonly property var displayHpData: root.botHpData ?? mockHpData
+        readonly property list<int> displayHpData: root.botHpData.length === 10 ? root.botHpData : mockHpData
     }
 
     Item {
