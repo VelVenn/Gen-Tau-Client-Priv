@@ -18,7 +18,7 @@ using namespace gentau;
 
 int main(int argc, char* argv[])
 {
-	qputenv("QSG_RENDER_LOOP", "basic");
+	// qputenv("QSG_RENDER_LOOP", "basic");
 	qputenv("__GL_SYNC_TO_VBLANK", "0");
 	qputenv("vblank_mode", "0");
 	qputenv("_NET_WM_BYPASS_COMPOSITOR", "1");
@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
 	vid::initGstContext(&argc, &argv);
 
 	QGuiApplication app(argc, argv);
+	QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
 	std::unique_ptr<GAppContext> appContext = nullptr;
 
@@ -42,7 +43,7 @@ int main(int argc, char* argv[])
 		appContext = GAppContext::create();
 	} catch (const std::exception& e) {
 		tLogCritical("Failed to create GAppContext: {}", e.what());
-		QCoreApplication::exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	GAppQmlContext::setInstance(appContext.get());
@@ -63,7 +64,7 @@ int main(int argc, char* argv[])
 
 	if (engine.rootObjects().isEmpty()) {
 		tLogCritical("Failed to load QML root object");
-		QCoreApplication::exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 
 	QQuickWindow* rootWindow = qobject_cast<QQuickWindow*>(engine.rootObjects().first());
@@ -72,10 +73,8 @@ int main(int argc, char* argv[])
 		appContext->bindToWindow(rootWindow);
 	} catch (const std::exception& e) {
 		tLogCritical("Failed to bind app context to window: {}", e.what());
-		QCoreApplication::exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
-
-	tLogInfo("Application started successfully. Version: {}", GEN_TAU_VERSION_STRING);
 
 	return app.exec();
 }
