@@ -2,6 +2,8 @@
 
 #include <QSize>
 
+#include "conf/version.hpp"
+
 #include "adapter/mqtt/GMqttAdapter.hpp"
 #include "utils/TLog.hpp"
 
@@ -122,6 +124,8 @@ void GAppContext::finalizeVidRenderersInit(bool success)
 		QCoreApplication::exit(EXIT_FAILURE);
 		return;
 	}
+
+	tLogInfo("Application started successfully. Version: {}", GEN_TAU_VERSION_STRING);
 }
 
 void GAppContext::bindToWindow(QQuickWindow* window)
