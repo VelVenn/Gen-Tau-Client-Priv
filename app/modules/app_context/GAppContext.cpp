@@ -187,7 +187,8 @@ GAppContext::GAppContext(QObject* parent) :
 	_deployVtRender(TBytesVidRender::create()),
 	_client(),
 	_inputEventDispatcher(_client),
-	_connService(*_imgTrans, *_deployVtRender, _client)
+	_connService(*_imgTrans, *_deployVtRender, _client),
+	_hudModel(_client)
 {
 	connect(
 		&_client,
@@ -195,8 +196,7 @@ GAppContext::GAppContext(QObject* parent) :
 		this,
 		[this](const QString& newId, const QString& newUri, quint64 newGen) {
 			_clientGen.store(newGen);
-		},
-		Qt::QueuedConnection
+		}
 	);
 }
 }  // namespace gentau

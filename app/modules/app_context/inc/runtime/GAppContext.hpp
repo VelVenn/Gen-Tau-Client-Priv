@@ -15,6 +15,8 @@
 
 #include "services/conn/GConnService.hpp"
 
+#include "models/hud/GHudModel.hpp"
+
 #include <atomic>
 #include <memory>
 
@@ -29,6 +31,8 @@ class GAppContext : public QObject
 	Q_OBJECT
 
 	Q_PROPERTY(gentau::GConnService* connService READ connService CONSTANT FINAL)
+
+	Q_PROPERTY(gentau::GHudModel* hudModel READ hudModel CONSTANT FINAL)
 
   private:
 	class GInitVidRenderTask;
@@ -48,6 +52,8 @@ class GAppContext : public QObject
   private:
 	GConnService* connService() noexcept { return &_connService; }
 
+	GHudModel* hudModel() noexcept { return &_hudModel; }
+
   private:
 	TImgTrans::SharedPtr       _imgTrans{ nullptr };
 	TBytesVidRender::SharedPtr _deployVtRender{ nullptr };
@@ -59,6 +65,8 @@ class GAppContext : public QObject
 
   private:
 	GConnService _connService;
+
+	GHudModel _hudModel;
 
   public:
 	[[nodiscard]] static std::unique_ptr<GAppContext> create()

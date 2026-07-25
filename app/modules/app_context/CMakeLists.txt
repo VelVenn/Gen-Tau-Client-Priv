@@ -20,6 +20,7 @@ gt_register_qml_mod(
     DEPENDENCIES
       TARGET Gentau::Qml::Service::Conn
       TARGET Gentau::Qml::Message
+      TARGET Gentau::Qml::Model::Hud
 )
 
 target_include_directories(${APP_CONTEXT_TAR}
@@ -41,4 +42,6 @@ target_link_libraries(${APP_CONTEXT_TAR}
 
     Gentau::App::ConnService
     Gentau::App::Msg
+
+    Gentau::App::HudModel
 )
