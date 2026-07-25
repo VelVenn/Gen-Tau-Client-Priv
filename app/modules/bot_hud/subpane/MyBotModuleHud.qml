@@ -23,6 +23,9 @@ Item {
     implicitWidth: content.childrenRect.width * scaleFactor
     implicitHeight: content.childrenRect.height * scaleFactor
 
+    layer.enabled: true
+    layer.samples: 4
+
     Item {
         id: content
 
