@@ -51,6 +51,8 @@ gt_register_qml_mod(
     IMPORTS
       TARGET Gentau::Qml::BotHud::Element
       TARGET Gentau::Qml::Service::Conn
+      TARGET Gentau::Qml::Message
+      TARGET Gentau::Qml::Model::GlobalStatus
     RESOURCES ${SUB_IMG_FILES}
 )
 
@@ -61,6 +63,8 @@ target_link_libraries(${BOT_HUD_SUB_TAR}
   PUBLIC
     ${BOT_HUD_ELEM_TAR}
     Gentau::App::ConnService::Plugin
+    Gentau::App::Msg::Plugin
+    Gentau::App::GlobalStatusModel::Plugin
 )
 
 gt_register_qml_mod(

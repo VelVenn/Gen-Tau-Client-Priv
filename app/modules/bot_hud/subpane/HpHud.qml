@@ -7,18 +7,32 @@ import Gentau.BasicWidgets
 import Gentau.CommonElem
 import Gentau.BotHud.Element
 
+import Gentau.Model.GlobalStatus
+import Gentau.Message
+
 Item {
     id: root
+
+    required property GlobalStatus globalStatus
+
+    readonly property globalUnitStatus unitStatus: globalStatus.unitStatus
+    readonly property globalLogisticsStatus logisticsStatus: globalStatus.logisticsStatus
 
     property bool isOurRed: true
 
     property real scaleFactor: 1.0
 
     // Our Data Properties
-    property real ourBaseHp: 5000
+    property real ourBaseHp: unitStatus.baseHealth
     property real ourBaseMaxHp: 5000
-    property real ourBaseDef: 150
-    property int ourBaseStatus: BaseMeta.BaseStatus.ARMOR_CLOSED
+    property real ourBaseDef: unitStatus.baseShield
+    property int ourBaseStatus: {
+        if (root.globalStatus.online) {
+            return root.unitStatus.baseStatus;
+        }
+
+        return BaseMeta.BaseStatus.ARMOR_CLOSED;
+    }
 
     property real ourOutpostHp: 1500
     property real ourOutpostMaxHp: 1500
@@ -98,13 +112,27 @@ Item {
             borderRadius: 6
 
             badgeGradient: LinearGradient {
-                x1: 0; y1: 0
-                x2: 0; y2: centralBadge.height
+                x1: 0
+                y1: 0
+                x2: 0
+                y2: centralBadge.height
 
-                GradientStop { position: 0.0; color: root.lightBlue }
-                GradientStop { position: 0.3; color: Qt.alpha(root.lightBlue, 0.6) }
-                GradientStop { position: 0.6; color: Qt.alpha(root.lightBlue, 0.4) }
-                GradientStop { position: 1.0; color: Qt.alpha(root.lightBlue, 0.2) }
+                GradientStop {
+                    position: 0.0
+                    color: root.lightBlue
+                }
+                GradientStop {
+                    position: 0.3
+                    color: Qt.alpha(root.lightBlue, 0.6)
+                }
+                GradientStop {
+                    position: 0.6
+                    color: Qt.alpha(root.lightBlue, 0.4)
+                }
+                GradientStop {
+                    position: 1.0
+                    color: Qt.alpha(root.lightBlue, 0.2)
+                }
             }
         }
 
@@ -160,10 +188,22 @@ Item {
             borderColor: Qt.darker(Qt.alpha(root.lightBlue, 0.6), 1.2)
 
             badgeGradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.alpha(root.lightBlue, 0.2) }
-                GradientStop { position: 0.3; color: Qt.alpha(root.lightBlue, 0.4) }
-                GradientStop { position: 0.6; color: Qt.alpha(root.lightBlue, 0.6) }
-                GradientStop { position: 1.0; color: root.lightBlue }
+                GradientStop {
+                    position: 0.0
+                    color: Qt.alpha(root.lightBlue, 0.2)
+                }
+                GradientStop {
+                    position: 0.3
+                    color: Qt.alpha(root.lightBlue, 0.4)
+                }
+                GradientStop {
+                    position: 0.6
+                    color: Qt.alpha(root.lightBlue, 0.6)
+                }
+                GradientStop {
+                    position: 1.0
+                    color: root.lightBlue
+                }
             }
 
             text: root.gameCountText
@@ -226,7 +266,7 @@ Item {
         BaseStatusIcon {
             id: ourBaseStatusIcon
 
-            baseColor: root.isOurRed ? root.redColor: root.blueColor
+            baseColor: root.isOurRed ? root.redColor : root.blueColor
 
             anchors.top: ourBaseHpBar.bottom
             anchors.left: ourBaseHpBar.left
@@ -242,7 +282,7 @@ Item {
         BaseStatusIcon {
             id: theirBaseStatusIcon
 
-            baseColor: !root.isOurRed ? root.redColor: root.blueColor
+            baseColor: !root.isOurRed ? root.redColor : root.blueColor
 
             anchors.top: theirBaseHpBar.bottom
             anchors.right: theirBaseHpBar.right
@@ -369,7 +409,7 @@ Item {
         OutPostStatusIcon {
             id: ourOutpostStatusIcon
 
-            baseColor: root.isOurRed ? root.redColor: root.blueColor
+            baseColor: root.isOurRed ? root.redColor : root.blueColor
 
             anchors.top: ourOutpostHpBar.bottom
             anchors.left: ourOutpostHpBar.left
@@ -385,7 +425,7 @@ Item {
         OutPostStatusIcon {
             id: theirOutpostStatusIcon
 
-            baseColor: !root.isOurRed ? root.redColor: root.blueColor
+            baseColor: !root.isOurRed ? root.redColor : root.blueColor
 
             anchors.top: theirOutpostHpBar.bottom
             anchors.right: theirOutpostHpBar.right
@@ -433,6 +473,5 @@ Item {
 
             lighterOnLeft: true
         }
-
     }
 }

@@ -14,7 +14,7 @@ class GHudModel : public QObject
 
 	Q_PROPERTY(gentau::GGlobalStatusModel* globalStatus READ globalStatus CONSTANT FINAL)
 
-  private:
+  public:
 	GGlobalStatusModel* globalStatus() noexcept { return &_globalStatus; }
 
   private:
@@ -25,9 +25,7 @@ class GHudModel : public QObject
 	GGlobalStatusModel _globalStatus;
 
   public:
-	explicit GHudModel(
-		GMqttAdapter& client, QObject* parent = nullptr
-	);
+	explicit GHudModel(GMqttAdapter& client, QObject* parent = nullptr);
 
 	~GHudModel() override = default;
 };
