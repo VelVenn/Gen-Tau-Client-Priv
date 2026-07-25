@@ -13,10 +13,10 @@ class GGlobalStatusModel : public GBaseModel
 	Q_OBJECT
 
 	// clang-format off
-	Q_PROPERTY(GlobalUnitStatus unitStatus READ unitStatus NOTIFY unitStatusChanged FINAL)
+	Q_PROPERTY(gentau::GlobalUnitStatus unitStatus READ unitStatus NOTIFY unitStatusChanged FINAL)
 
 	Q_PROPERTY(
-		GlobalLogisticsStatus logisticsStatus
+		gentau::GlobalLogisticsStatus logisticsStatus
 		READ logisticsStatus
 		NOTIFY logisticsStatusChanged
 		FINAL
