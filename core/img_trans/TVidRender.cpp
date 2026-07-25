@@ -84,8 +84,8 @@ GstElement* TVidRender::choosePrefDecoder(bool& isDynamic)
 		"d3d11h265dec",  // D3D11
 		"qsvh265dec",    // QuickSync (Intel)
 #elif defined(__APPLE__)
-		"vtdec_hw",  // General VideoToolbox hardware decoder
-		"vtdec",
+		// "vtdec_hw",  // General VideoToolbox hardware decoder
+		// "vtdec",
 #endif
 		"avdec_h265",  // FFMPEG software decoder as fallback
 	};
