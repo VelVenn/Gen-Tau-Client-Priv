@@ -26,6 +26,7 @@ target_include_directories(${CONN_SERVICE_TAR}
 target_link_libraries(${CONN_SERVICE_TAR}
   PUBLIC
     Qt6::Core 
+    Qt6::Qml
 
     Gentau::ImgTrans
     Gentau::App::MqttAdapter
