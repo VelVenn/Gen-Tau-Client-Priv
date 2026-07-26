@@ -26,6 +26,7 @@ gt_register_qml_mod(
   QT_ARGS
     DEPENDENCIES
       TARGET Gentau::Qml::Model::GlobalStatus
+      TARGET Gentau::Qml::Model::GameStatus
 )
 
 target_include_directories(${HUD_MODEL_TAR}
@@ -39,6 +40,7 @@ target_link_libraries(${HUD_MODEL_TAR}
     Qt6::Qml
 
     Gentau::App::GlobalStatusModel
+    Gentau::App::GameStatusModel
 
   PRIVATE
     Gentau::Utils
