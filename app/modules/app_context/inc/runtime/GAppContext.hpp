@@ -15,6 +15,7 @@
 
 #include "services/conn/GConnService.hpp"
 
+#include "models/bots/GBotStatus.hpp"
 #include "models/hud/GHudModel.hpp"
 
 #include <atomic>
@@ -33,6 +34,8 @@ class GAppContext : public QObject
 	Q_PROPERTY(gentau::GConnService* connService READ connService CONSTANT FINAL)
 
 	Q_PROPERTY(gentau::GHudModel* hudModel READ hudModel CONSTANT FINAL)
+
+	Q_PROPERTY(gentau::GBotStatus* botStatus READ botStatus CONSTANT FINAL)
 
   private:
 	class GInitVidRenderTask;
@@ -54,7 +57,12 @@ class GAppContext : public QObject
 
 	GHudModel* hudModel() noexcept { return &_hudModel; }
 
+	GBotStatus* botStatus() noexcept { return &_botStatus; }
+
   private:
+	QPointer<QQuickItem> _imgTransQItem{ nullptr };
+	QPointer<QQuickItem> _deployVtQItem{ nullptr };
+
 	TImgTrans::SharedPtr       _imgTrans{ nullptr };
 	TBytesVidRender::SharedPtr _deployVtRender{ nullptr };
 
@@ -66,7 +74,8 @@ class GAppContext : public QObject
   private:
 	GConnService _connService;
 
-	GHudModel _hudModel;
+	GHudModel  _hudModel;
+	GBotStatus _botStatus;
 
   public:
 	[[nodiscard]] static std::unique_ptr<GAppContext> create()

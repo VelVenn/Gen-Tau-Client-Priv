@@ -159,6 +159,9 @@ void GAppContext::bindToWindow(QQuickWindow* window)
 		throw std::runtime_error(cause.data());
 	}
 
+	_imgTransQItem = imgTransItem;
+	_deployVtQItem = deployVtItem;
+
 	tLogDebug("Found QML item 'imgTrans': <{}>", static_cast<const void*>(imgTransItem));
 	_imgTrans->renderer->linkSinkWidget(imgTransItem);
 
@@ -192,7 +195,8 @@ GAppContext::GAppContext(QObject* parent) :
 	_client(),
 	_inputEventDispatcher(_client),
 	_connService(*_imgTrans, *_deployVtRender, _client),
-	_hudModel(_client)
+	_hudModel(_client),
+	_botStatus(_client)
 {
 	connect(
 		&_client,
