@@ -2,6 +2,8 @@ import QtQuick
 
 import Gentau.BotHud.Subpane
 
+import Gentau.HeroHud
+
 import Gentau.Settings.UiPref
 
 import Gentau.Context
@@ -136,5 +138,13 @@ Item {
         anchors.topMargin: 10 * root.scaleFactor
 
         scaleFactor: 1.1 * root.scaleFactor
+    }
+
+    HeroHud {
+        id: heroHud
+
+        anchors.fill: parent
+
+        scaleFactor: root.scaleFactor
     }
 }

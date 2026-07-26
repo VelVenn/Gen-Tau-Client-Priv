@@ -79,6 +79,7 @@ gt_register_qml_mod(
     STATIC
     DEPENDENCIES
       TARGET Gentau::Qml::BotHud::Subpane
+      TARGET Gentau::Qml::HeroHud
       TARGET Gentau::Qml::Settings::UiPref
       TARGET Gentau::Qml::Context
 )
@@ -89,4 +90,5 @@ target_link_libraries(${BOT_HUD_TAR}
     ${BOT_HUD_SUB_TAR}
     Gentau::App::SettingsUiPref
     Gentau::App::AppContext::Plugin
+    Gentau::App::HeroHud::Plugin
 )
