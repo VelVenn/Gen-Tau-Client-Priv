@@ -37,40 +37,40 @@ auto GGameStatusModel::valToWinner(quint32 val) noexcept -> Winner
 
 auto GGameStatusModel::stage() const noexcept -> Stage
 {
-	if (_gameStatus.hasCurrentStage()) { return toStage(_gameStatus.currentStage()); }
+	if (_roundStatus.hasCurrentStage()) { return toStage(_roundStatus.currentStage()); }
 
 	return Stage::Unstarted;
 }
 
 auto GGameStatusModel::endReason() const noexcept -> EndReason
 {
-	if (_gameStatus.hasEndReason()) { return toEndReason(_gameStatus.endReason()); }
+	if (_roundStatus.hasEndReason()) { return toEndReason(_roundStatus.endReason()); }
 
 	return EndReason::None;
 }
 
 auto GGameStatusModel::winner() const noexcept -> Winner
 {
-	if (_gameStatus.hasGameResult()) { return toWinner(_gameStatus.gameResult()); }
+	if (_roundStatus.hasGameResult()) { return toWinner(_roundStatus.gameResult()); }
 
 	return Winner::None;
 }
 
 void GGameStatusModel::updateGameStatus(const GameStatus& status)
 {
-	if (_gameStatus == status) { return; }
+	if (_roundStatus == status) { return; }
 
 	const Stage     oldStage     = stage();
 	const Winner    oldWinner    = winner();
 	const EndReason oldEndReason = endReason();
 
-	_gameStatus = status;
+	_roundStatus = status;
 
 	const Stage     newStage     = stage();
 	const Winner    newWinner    = winner();
 	const EndReason newEndReason = endReason();
 
-	Q_EMIT gameStatusChanged(_gameStatus);
+	Q_EMIT roundStatusChanged(_roundStatus);
 
 	if (oldStage != newStage) { Q_EMIT stageChanged(newStage); }
 

@@ -12,7 +12,7 @@ class GGameStatusModel : public GBaseModel
 {
 	Q_OBJECT
 
-	Q_PROPERTY(gentau::GameStatus gameStatus READ gameStatus NOTIFY gameStatusChanged FINAL)
+	Q_PROPERTY(gentau::GameStatus roundStatus READ roundStatus NOTIFY roundStatusChanged FINAL)
 	Q_PROPERTY(Stage stage READ stage NOTIFY stageChanged FINAL)
 	Q_PROPERTY(EndReason endReason READ endReason NOTIFY endReasonChanged FINAL)
 	Q_PROPERTY(Winner winner READ winner NOTIFY winnerChanged FINAL)
@@ -54,14 +54,14 @@ class GGameStatusModel : public GBaseModel
 	Q_ENUM(Winner)
 
   Q_SIGNALS:
-	void gameStatusChanged(const GameStatus& newStatus);
+	void roundStatusChanged(const GameStatus& newStatus);
 
 	void stageChanged(Stage newStage);
 	void endReasonChanged(EndReason newEndReason);
 	void winnerChanged(Winner newWinner);
 
   public:
-	GameStatus gameStatus() const noexcept { return _gameStatus; }
+	GameStatus roundStatus() const noexcept { return _roundStatus; }
 
 	Stage     stage() const noexcept;
 	EndReason endReason() const noexcept;
@@ -86,7 +86,7 @@ class GGameStatusModel : public GBaseModel
 	void onBindingChanged(const QString&, const QString&, quint64) override;
 
   private:
-	GameStatus _gameStatus;
+	GameStatus _roundStatus;
 
   public:
 	using GBaseModel::GBaseModel;
