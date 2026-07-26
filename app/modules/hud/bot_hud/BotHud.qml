@@ -137,15 +137,4 @@ Item {
 
         scaleFactor: 1.1 * root.scaleFactor
     }
-
-    HeroKeyHintPane {
-        id: heroKeyHint
-
-        anchors.horizontalCenter: centerCross.horizontalCenter
-        anchors.bottom: myBotModule.bottom
-
-        scaleFactor: root.scaleFactor
-
-        alwaysShow: UiPref.showKeyHint
-    }
 }
