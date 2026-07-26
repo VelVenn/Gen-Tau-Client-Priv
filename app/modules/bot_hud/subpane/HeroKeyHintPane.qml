@@ -6,7 +6,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Effects
 
 import Gentau.Foundation
-import Gentau.BotHud.Element
+import Gentau.CommonElem
 
 Item {
     id: root
