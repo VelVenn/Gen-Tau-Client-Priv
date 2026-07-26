@@ -8,17 +8,20 @@ Item {
 
     property real scaleFactor: 1.0
 
-    property real heatVal: 0
-    property real maxHeat: 100
     property real crossSize: 50
+
+    property alias crossImgSrc: crossImg.source
+
+    property real heatVal: 0
+    property real maxHeat: 0
 
     property bool isOverheat: false
 
     implicitWidth: (content.childrenRect.width) * scaleFactor
     implicitHeight: (content.childrenRect.height) * scaleFactor
 
-    layer.enabled: true
-    layer.samples: 4
+    // layer.enabled: true
+    // layer.samples: 4
 
     antialiasing: true
 

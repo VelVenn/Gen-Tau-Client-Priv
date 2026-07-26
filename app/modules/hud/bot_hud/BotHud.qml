@@ -8,11 +8,13 @@ import Gentau.Settings.UiPref
 
 import Gentau.Context
 
+import Gentau.Message
+
 Item {
     id: root
 
-    // layer.enabled: true
-    // layer.samples: 4
+    layer.enabled: true
+    layer.samples: 4
 
     readonly property int ourBotIdx: BotMeta.idStrToBotIdx(Context.connService.requestedId)
 
@@ -23,6 +25,9 @@ Item {
     readonly property int displayOurCamp: root.hasKnownCamp ? root.ourCamp : BotMeta.BotCamp.RED
 
     readonly property bool isOurRed: root.displayOurCamp === BotMeta.BotCamp.RED
+
+    readonly property robotStaticStatus botStaticStatus: Context.botStatus.commonStatus.staticStatus
+    readonly property robotDynamicStatus botDynoStatus: Context.botStatus.commonStatus.dynamicStatus
 
     property real scaleFactor: 1.0
 
@@ -103,6 +108,9 @@ Item {
 
         scaleFactor: root.scaleFactor
 
+        heatVal: root.botDynoStatus.currentHeat
+        maxHeat: root.botStaticStatus.maxHeat
+
         visible: UiPref.showCrosshair
     }
 
@@ -113,6 +121,9 @@ Item {
         anchors.verticalCenterOffset: 2 * root.scaleFactor
 
         scaleFactor: root.scaleFactor
+
+        leftAmmo: root.botDynoStatus.remainingAmmo
+        ammoSpd: root.botDynoStatus.lastProjectileFireRate
 
         visible: UiPref.showSpdAndAmmo
     }
@@ -126,6 +137,8 @@ Item {
         anchors.leftMargin: 50 * root.scaleFactor
         anchors.bottomMargin: 100 * root.scaleFactor
 
+        commonStatus: Context.botStatus.commonStatus
+
         scaleFactor: root.scaleFactor
     }
 
@@ -136,6 +149,8 @@ Item {
         anchors.top: myBotStatus.bottom
 
         anchors.topMargin: 10 * root.scaleFactor
+
+        commonStatus: Context.botStatus.commonStatus
 
         scaleFactor: 1.1 * root.scaleFactor
     }

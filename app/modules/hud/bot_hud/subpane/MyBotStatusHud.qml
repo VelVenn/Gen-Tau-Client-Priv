@@ -6,34 +6,45 @@ import Gentau.BasicWidgets
 import Gentau.CommonElem
 import Gentau.BotHud.Element
 
+import Gentau.Bot.Common
+import Gentau.Message
+
 import "avatarAtlasSprite.js" as AtlasInfo
 
 Item {
     id: root
 
-    property int botIdx: 0
-    property int botLv: 0
-
-    property int botExp: 0
-    property int botCurLvMaxExp: 0
-
-    property real botHp: 250
-    property real maxBotHp: 250
-
-    property int botBufEnergy: 60
-    property int botChassisEnergy: 40000
-
-    property bool isInvincible: false
-
-    property bool isOffline: false
-
     property real scaleFactor: 1.0
+
+    required property BotCommonStatus commonStatus
+
+    readonly property robotStaticStatus staticStatus: commonStatus.staticStatus
+    readonly property robotDynamicStatus dynamicStatus: commonStatus.dynamicStatus
+
+    readonly property int botIdx: staticStatus.robotId
+    readonly property int botLv: staticStatus.level
+
+    readonly property int botExp: dynamicStatus.currentExperience
+    readonly property int botCurLvMaxExp: dynamicStatus.currentExperience + dynamicStatus.experienceForUpgrade
+
+    readonly property real botHp: dynamicStatus.currentHealth
+    readonly property real maxBotHp: staticStatus.maxHealth
+
+    readonly property int botBufEnergy: dynamicStatus.currentBufferEnergy
+    readonly property int botChassisEnergy: dynamicStatus.currentChassisEnergy
+
+    readonly property int maxBotBufEnergy: staticStatus.maxBufferEnergy
+    readonly property int maxBotChassisEnergy: staticStatus.maxChassisEnergy
+
+    readonly property bool isInvincible: false
+
+    readonly property bool isOffline: commonStatus.online ? !staticStatus.connectionState : false
 
     implicitWidth: content.childrenRect.width * scaleFactor
     implicitHeight: content.childrenRect.height * scaleFactor
 
-    layer.enabled: true
-    layer.samples: 4
+    // layer.enabled: true
+    // layer.samples: 4
 
     QtObject {
         id: param
@@ -52,15 +63,12 @@ Item {
         property string avatarIdx: BotMeta.toBotAvatarIdxString(root.botIdx)
 
         property int displayMaxHp: {
-            if (root.maxBotHp <= 0) { return 1 }
+            if (root.maxBotHp <= 0) { return 0 }
 
             return Math.max(1, Math.floor(root.maxBotHp))
         }
 
         property string hpStr: botHpBar.displayHp.toString() + ' / ' + displayMaxHp.toString()
-
-        readonly property int maxBufEnergy: 60
-        readonly property int maxChassisEnergy: 40000
 
         property color baseColor: {
             switch (camp) {
@@ -316,7 +324,7 @@ Item {
             height: 8
 
             targetHp: root.botBufEnergy
-            maxValue: param.maxBufEnergy
+            maxValue: root.maxBotBufEnergy
 
             slantWidth: 3
 
@@ -343,7 +351,7 @@ Item {
             slantWidth: 3
 
             targetHp: root.botChassisEnergy
-            maxValue: param.maxChassisEnergy
+            maxValue: root.maxBotChassisEnergy
 
             fillColor: param.chasBarColor
             bgColor: Qt.alpha(Style.grayColor, 0.5)

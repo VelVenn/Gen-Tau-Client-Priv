@@ -54,6 +54,7 @@ gt_register_qml_mod(
       TARGET Gentau::Qml::Message
       TARGET Gentau::Qml::Model::GlobalStatus
       TARGET Gentau::Qml::Model::GameStatus
+      TARGET Gentau::Qml::Bot::Common
     RESOURCES ${SUB_IMG_FILES}
 )
 
@@ -67,6 +68,7 @@ target_link_libraries(${BOT_HUD_SUB_TAR}
     Gentau::App::Msg::Plugin
     Gentau::App::GlobalStatusModel::Plugin
     Gentau::App::GameStatusModel::Plugin
+    Gentau::App::BotsCommon::Plugin
 )
 
 gt_register_qml_mod(
