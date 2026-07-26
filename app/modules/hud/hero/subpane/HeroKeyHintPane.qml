@@ -6,7 +6,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Effects
 
 import Gentau.Foundation
-import Gentau.CommonElem
+import Gentau.HeroHud.Element
 
 Item {
     id: root
@@ -18,7 +18,7 @@ Item {
     property bool isDeployVt: false
     property bool isDeployMode: false
 
-    property alias deployModeProgress: deployModeKeyBadge.pressProgress
+    property alias deployModeProgress: deployModeHint.pressProgress
 
     property bool isJPressed: false
     property bool isHPressed: false
@@ -28,13 +28,13 @@ Item {
     implicitWidth: content.childrenRect.width * scaleFactor
     implicitHeight: content.childrenRect.height * scaleFactor
 
-    QtObject {
-        id: param
+    component HintSeparator: Rectangle {
+        Layout.preferredWidth: 2
+        Layout.preferredHeight: 18
+        Layout.leftMargin: 6
+        Layout.rightMargin: 6
 
-        property real basePxSize: 13
-        property real baseKeySize: 12
-
-        property bool baseTextBold: false
+        color: Qt.alpha("white", 0.5)
     }
 
     Item {
@@ -89,111 +89,40 @@ Item {
             RowLayout {
                 spacing: 8
 
-                Label {
-                    text: "按"
-                    color: "white"
-                    font.family: Style.notoSansSC.font.family
-                    font.pixelSize: param.basePxSize
-                    font.bold: param.baseTextBold
-
-                    visible: root.alwaysShow
-                }
-
-                KeyBadge {
-                    text: "J"
-                    font.pixelSize: param.baseKeySize
+                KeyHint {
+                    keyTexts: ["J"]
+                    hintText: root.isDeployVt ? "切换官方图传" : "切换部署图传"
                     isPressed: root.isJPressed
 
                     visible: root.alwaysShow
                 }
 
-                Label {
-                    text: root.isDeployVt ? "切换官方图传" : "切换部署图传"
-                    color: "white"
-                    font.family: Style.notoSansSC.font.family
-                    font.pixelSize: param.basePxSize
-                    font.bold: param.baseTextBold
-
+                HintSeparator {
                     visible: root.alwaysShow
                 }
 
-                Rectangle {
-                    Layout.preferredWidth: 2
-                    Layout.preferredHeight: 18
-                    Layout.leftMargin: 6
-                    Layout.rightMargin: 6
-                    color: Qt.alpha("white", 0.5)
-
-                    visible: root.alwaysShow
-                }
-
-                Label {
-                    text: "按"
-                    color: "white"
-                    font.family: Style.notoSansSC.font.family
-                    font.pixelSize: param.basePxSize
-                    font.bold: param.baseTextBold
+                KeyHint {
+                    keyTexts: ["H"]
+                    hintText: "重启部署图传"
+                    isPressed: root.isHPressed
 
                     visible: root.isDeployVt && root.alwaysShow
                 }
 
-                KeyBadge {
-                    text: "H"
-                    font.pixelSize: param.baseKeySize
-                    isPressed: root.isJPressed
-
+                HintSeparator {
                     visible: root.isDeployVt && root.alwaysShow
                 }
 
-                Label {
-                    text: "重启部署图传"
-                    color: "white"
-                    font.family: Style.notoSansSC.font.family
-                    font.pixelSize: param.basePxSize
-                    font.bold: param.baseTextBold
+                KeyHint {
+                    id: deployModeHint
 
-                    visible: root.isDeployVt && root.alwaysShow
-                }
-
-                Rectangle {
-                    Layout.preferredWidth: 2
-                    Layout.preferredHeight: 18
-                    Layout.leftMargin: 6
-                    Layout.rightMargin: 6
-                    color: Qt.alpha("white", 0.5)
-
-                    visible: root.isDeployVt && root.alwaysShow
-                }
-
-                Label {
-                    text: "长按"
-                    color: "white"
-                    font.family: Style.notoSansSC.font.family
-                    font.pixelSize: param.basePxSize
-                    font.bold: param.baseTextBold
-
-                    visible: root.alwaysShow || root.deployModeProgress > 0.0
-                }
-
-                KeyBadge {
-                    id: deployModeKeyBadge
-
-                    text: root.isDeployMode ? "L" : "K"
-                    font.pixelSize: param.baseKeySize
+                    actionText: "长按"
+                    keyTexts: [root.isDeployMode ? "L" : "K"]
+                    hintText: root.isDeployMode ? "退出部署模式" : "进入部署模式"
 
                     isPressed: root.isDeployMode ? root.isLPressed : root.isKPressed
 
-                    interactMode: KeyBadge.Mode.Delay
-
-                    visible: root.alwaysShow || root.deployModeProgress > 0.0
-                }
-
-                Label {
-                    text: root.isDeployMode ? "退出部署模式" : "进入部署模式"
-                    color: "white"
-                    font.family: Style.notoSansSC.font.family
-                    font.pixelSize: param.basePxSize
-                    font.bold: param.baseTextBold
+                    interactMode: KeyHint.Mode.Delay
 
                     visible: root.alwaysShow || root.deployModeProgress > 0.0
                 }

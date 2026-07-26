@@ -5,22 +5,22 @@ file(
 )
 
 gt_register_qml_mod(
-  TARGET hero-hud-sub
-  URI_SUFFIX HeroHud.Subpane
-  REAL_TARGET_VAR HERO_HUD_SUB_TAR
+  TARGET hero-hud-elem
+  URI_SUFFIX HeroHud.Element
+  REAL_TARGET_VAR HERO_HUD_ELEM_TAR
   QML_FILES
     ${QML_FILES}
   QT_ARGS
     STATIC
     IMPORTS
       TARGET Gentau::Qml::Foundation
-      TARGET Gentau::Qml::HeroHud::Element
+      TARGET Gentau::Qml::CommonElem
 )
 
-target_link_libraries(${HERO_HUD_SUB_TAR}
+target_link_libraries(${HERO_HUD_ELEM_TAR}
   PRIVATE
     Qt6::Quick
   PUBLIC
     Gentau::App::UiFoundation::Plugin
-    Gentau::App::HeroHudElem
+    Gentau::App::CommonElem::Plugin
 )

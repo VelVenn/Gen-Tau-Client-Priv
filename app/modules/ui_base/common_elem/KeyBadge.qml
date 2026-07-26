@@ -42,7 +42,7 @@ RectBadge {
     property real pressProgress: 0.0 // 仅供 Delay 模式渲染使用
 
     readonly property real displayProg: {
-        if (root.interactMode === KeyBadge.Mode.Delay) {
+        if (root.interactMode !== KeyBadge.Mode.Delay) {
             return 0
         }
 
