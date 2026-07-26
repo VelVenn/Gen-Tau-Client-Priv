@@ -8,6 +8,7 @@ import Gentau.CommonElem
 import Gentau.BotHud.Element
 
 import Gentau.Model.GlobalStatus
+import Gentau.Model.GameStatus
 import Gentau.Message
 
 Item {
@@ -16,10 +17,12 @@ Item {
     property real scaleFactor: 1.0
 
     required property GlobalStatus globalStatus
+    required property GameStatusModel gameStatusModel
     required property bool isOurRed
 
     readonly property globalUnitStatus unitStatus: globalStatus.unitStatus
     readonly property globalLogisticsStatus logisticsStatus: globalStatus.logisticsStatus
+    readonly property gameStatus roundStatus: gameStatusModel.roundStatus
 
     // Our Data Properties
     readonly property real ourBaseHp: unitStatus.baseHealth
@@ -38,13 +41,19 @@ Item {
     readonly property real ourOutpostDef: 0
     readonly property int ourOutpostStatus: {
         if (root.globalStatus.online) {
-            return root.unitStatus.outpostStatus
+            return root.unitStatus.outpostStatus;
         }
 
-        return BaseMeta.OutpostStatus.ARMOR_IDLE
+        return BaseMeta.OutpostStatus.ARMOR_IDLE;
     }
 
-    readonly property int ourScore: 0
+    readonly property int ourScore: {
+        if (root.isOurRed) {
+            return root.roundStatus.redScore;
+        }
+
+        return root.roundStatus.blueScore;
+    }
 
     // Their Data Properties
     readonly property real theirBaseHp: unitStatus.enemyBaseHealth
@@ -69,10 +78,39 @@ Item {
         return BaseMeta.OutpostStatus.ARMOR_IDLE;
     }
 
-    readonly property int theirScore: 0
+    readonly property int theirScore: {
+        if (root.isOurRed) {
+            return root.roundStatus.blueScore;
+        }
 
-    property string centralTimeText: '0:00'
-    property string gameCountText: '- / -'
+        return root.roundStatus.redScore;
+    }
+
+    readonly property string centralTimeText: {
+        if (!root.gameStatusModel.online || !root.roundStatus.hasStageCountdownSec) {
+            return '--:--';
+        }
+
+        const totalSeconds = Math.max(0, Math.floor(root.roundStatus.stageCountdownSec));
+
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
+
+        return minutes + ':' + paddedSeconds;
+    }
+
+    property string gameCountText: {
+        if (!root.gameStatusModel.online) {
+            return '- / -';
+        }
+
+        const currentRound = root.roundStatus.hasCurrentRound ? root.roundStatus.currentRound : '-';
+
+        const totalRounds = root.roundStatus.hasTotalRounds ? root.roundStatus.totalRounds : '-';
+
+        return currentRound + ' / ' + totalRounds;
+    }
     // property string phaseText: '三分钟准备'
 
     readonly property color redColor: Style.redColor

@@ -37,6 +37,7 @@ Item {
         scaleFactor: root.scaleFactor
 
         globalStatus: Context.hudModel.globalStatus
+        gameStatusModel: Context.hudModel.gameStatus
 
         isOurRed: root.isOurRed
 
