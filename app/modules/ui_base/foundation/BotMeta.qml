@@ -26,52 +26,52 @@ QtObject {
             idx: 1
         }
         ListElement {
-            text: "红2 - 工程"
-            idx: 2
-        }
-        ListElement {
-            text: "红3 - 步兵"
-            idx: 3
-        }
-        ListElement {
-            text: "红4 - 步兵"
-            idx: 4
-        }
-        ListElement {
-            text: "红6 - 无人机"
-            idx: 6
-        }
-        ListElement {
-            text: "红7 - 哨兵"
-            idx: 7
-        }
-        ListElement {
-            text: "红9 - 雷达"
-            idx: 9
-        }
-        ListElement {
             text: "蓝1 - 英雄"
             idx: 101
+        }
+        ListElement {
+            text: "红2 - 工程"
+            idx: 2
         }
         ListElement {
             text: "蓝2 - 工程"
             idx: 102
         }
         ListElement {
+            text: "红3 - 步兵"
+            idx: 3
+        }
+        ListElement {
             text: "蓝3 - 步兵"
             idx: 103
+        }
+        ListElement {
+            text: "红4 - 步兵"
+            idx: 4
         }
         ListElement {
             text: "蓝4 - 步兵"
             idx: 104
         }
         ListElement {
+            text: "红6 - 无人机"
+            idx: 6
+        }
+        ListElement {
             text: "蓝6 - 无人机"
             idx: 106
         }
         ListElement {
+            text: "红7 - 哨兵"
+            idx: 7
+        }
+        ListElement {
             text: "蓝7 - 哨兵"
             idx: 107
+        }
+        ListElement {
+            text: "红9 - 雷达"
+            idx: 9
         }
         ListElement {
             text: "蓝9 - 雷达"
