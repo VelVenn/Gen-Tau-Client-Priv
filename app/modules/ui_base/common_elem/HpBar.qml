@@ -57,7 +57,7 @@ ParalProgressBar {
     fillColor: (value / maxValue) < lowHpThreshold ? Qt.darker(baseColor, 1.7) : baseColor
     bgColor: Qt.alpha('gray', 0.6)
 
-    borderColor: isInvincible ? param.displayInvColor : Qt.lighter(bgColor, 1.2)
+    borderColor: isInvincible ? invincibleColor : Qt.lighter(bgColor, 1.2)
     borderWidth: 3
 
     textOffsetY: 2
@@ -83,28 +83,37 @@ ParalProgressBar {
         }
     }
 
-    SequentialAnimation {
-        running: root.isInvincible && root.visible
-        loops: Animation.Infinite
+    Behavior on borderColor {
+        enabled: root.visible
 
         ColorAnimation {
-            target: param
-            property: "displayInvColor"
-            from: root.invincibleColor
-            to: Qt.lighter(root.bgColor, 1.2)
-            duration: 600
-            easing.type: Easing.Linear
-        }
-
-        ColorAnimation {
-            target: param
-            property: "displayInvColor"
-            from: Qt.lighter(root.bgColor, 1.2)
-            to: root.invincibleColor
-            duration: 600
-            easing.type: Easing.Linear
+            duration: 250
+            easing.type: Easing.InOutQuad
         }
     }
+
+    // SequentialAnimation {
+    //     running: root.isInvincible && root.visible
+    //     loops: Animation.Infinite
+
+    //     ColorAnimation {
+    //         target: param
+    //         property: "displayInvColor"
+    //         from: root.invincibleColor
+    //         to: Qt.lighter(root.bgColor, 1.2)
+    //         duration: 600
+    //         easing.type: Easing.Linear
+    //     }
+
+    //     ColorAnimation {
+    //         target: param
+    //         property: "displayInvColor"
+    //         from: Qt.lighter(root.bgColor, 1.2)
+    //         to: root.invincibleColor
+    //         duration: 600
+    //         easing.type: Easing.Linear
+    //     }
+    // }
 
     layer.enabled: true
     layer.effect: MultiEffect{
