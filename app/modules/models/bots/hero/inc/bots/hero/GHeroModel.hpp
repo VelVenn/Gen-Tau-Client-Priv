@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QProtobufSerializer>
 #include <QQuickItem>
+#include <QVariantAnimation>
 
 #include "adapter/mqtt/GMqttAdapter.hpp"
 
@@ -14,6 +15,8 @@
 #include "img_trans/vid_render/TBytesVidRender.hpp"
 
 #include "input/GInputEventDispatcher.hpp"
+
+#include <optional>
 
 namespace gentau {
 class GHeroModel : public GBotModel
@@ -66,12 +69,46 @@ class GHeroModel : public GBotModel
 	double deployModeProgress() const noexcept;
 
   private:
-	void onNewKeyEvent(const GInputEventDispatcher::KeyboardEventInfo event);
+	void setDeployVt(bool isDeployVt);
+	void setDeployMode(bool isDeployMode);
+	void setJPressed(bool isPressed);
+	void setHPressed(bool isPressed);
+	void setKPressed(bool isPressed);
+	void setLPressed(bool isPressed);
+	void setDeployModeProgress(double progress);
+
+  private:
+	bool isHeroRanged();
+
+	void startDeployModePress(bool targetMode);
+	void cancelDeployModePress();
+	void publishDeployModeCommand(bool targetMode);
+
+	void updateEffectiveDeployMode();
+
+	void parseDeployModeStatus(const QByteArray& data);
+	void parseCustomByteBlock(const QByteArray& data);
 
 	void restartDeployVt();
 
+  private:
 	void resetStatus() override;
-	void onConnected() override;
+
+	void onNewKeyEvent(const GInputEventDispatcher::KeyboardEventInfo event);
+
+  private:
+	bool _isDeployVt{ false };
+	bool _isDeployMode{ false };
+
+	bool _isJPressed{ false };
+	bool _isHPressed{ false };
+	bool _isKPressed{ false };
+	bool _isLPressed{ false };
+
+	bool   _serverDeployMode{ false };
+	double _deployModeProgress{ 0.0 };
+
+	std::optional<bool> _pendingDeployMode{ std::nullopt };
 
   private:
 	TBytesVidRender&       _deployVt;
@@ -79,6 +116,8 @@ class GHeroModel : public GBotModel
 
 	QQuickItem& _imgTransQItem;
 	QQuickItem& _deployVtQItem;
+
+	QVariantAnimation _deployModeAnimation;
 
 	QProtobufSerializer _serializer;
 
