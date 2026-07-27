@@ -8,7 +8,22 @@ import Gentau.ConfPanel.Element
 ScrollView {
     id: root
 
-    required property var preferences;
+    required property var preferences
+
+    component Spilter: Item {
+        Layout.fillWidth: true
+        Layout.preferredHeight: 10
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+
+            height: 2.5
+
+            color: Qt.darker(Style.grayBlue, 1.5)
+        }
+    }
 
     ColumnLayout {
         id: bottomLayout
@@ -32,18 +47,7 @@ ScrollView {
             }
         }
 
-        Item {
-            Layout.preferredWidth: 0
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 2
-
-            border.width: 0
-
-            color: Qt.darker(Style.grayBlue, 1.5)
-        }
+        Spilter {}
 
         RectCheckBox {
             id: crossHudChecker
@@ -58,7 +62,7 @@ ScrollView {
 
             onToggled: {
                 if (root.preferences.showCrosshair !== checked) {
-                    root.preferences.showCrosshair = checked
+                    root.preferences.showCrosshair = checked;
                 }
             }
         }
@@ -76,7 +80,7 @@ ScrollView {
 
             onToggled: {
                 if (root.preferences.showSpdAndAmmo !== checked) {
-                    root.preferences.showSpdAndAmmo = checked
+                    root.preferences.showSpdAndAmmo = checked;
                 }
             }
         }
@@ -94,7 +98,44 @@ ScrollView {
 
             onToggled: {
                 if (root.preferences.showKeyHint !== checked) {
-                    root.preferences.showKeyHint = checked
+                    root.preferences.showKeyHint = checked;
+                }
+            }
+        }
+
+        RowLayout {
+            Item {
+                Layout.preferredWidth: 3
+            }
+
+            Label {
+                text: "窗口配置"
+
+                font.family: Style.notoSansSC.font.family
+                font.pixelSize: 16
+
+                font.bold: true
+
+                color: 'white'
+            }
+        }
+
+        Spilter {}
+
+        RectCheckBox {
+            id: windowedModeChecker
+
+            text: "窗口化"
+
+            font.pixelSize: 15
+
+            spacing: 20
+
+            checked: root.preferences.windowedMode
+
+            onToggled: {
+                if (root.preferences.windowedMode !== checked) {
+                    root.preferences.windowedMode = checked;
                 }
             }
         }

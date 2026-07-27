@@ -9,6 +9,8 @@ QtObject {
     property bool showCrosshair: true
     property bool showKeyHint: true
     property bool showSpdAndAmmo: true
+    
+    property bool windowedMode: true
 
     readonly property QtObject _storage: Settings {
         category: "uiPref"
@@ -16,5 +18,7 @@ QtObject {
         property alias showCrosshair: root.showCrosshair
         property alias showKeyHint: root.showKeyHint
         property alias showSpdAndAmmo: root.showSpdAndAmmo
+
+        property alias windowedMode: root.windowedMode
     }
 }

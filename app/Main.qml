@@ -9,6 +9,8 @@ import Gentau.Foundation
 import Gentau.BotHud
 import Gentau.ConfPanel
 
+import Gentau.Settings.UiPref
+
 import Gentau.Context
 
 Window {
@@ -18,7 +20,13 @@ Window {
     height: 1080
     visible: true
 
-    // visibility: Window.FullScreen
+    visibility: {
+        if (UiPref.windowedMode) {
+            return Window.Windowed;
+        } else {
+            return Window.FullScreen;
+        }
+    }
 
     color: Qt.lighter(Style.grayBlue, 2.0)
 

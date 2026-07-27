@@ -22,17 +22,19 @@ add_subdirectory(modules)
 
 target_link_libraries(${GT_APP_NAME}
   PRIVATE
-  Qt6::Quick
-  Qt6::Protobuf
+    Qt6::Quick
+    Qt6::Protobuf
 
-  Gentau::Conf
-  Gentau::Utils
+    Gentau::Conf
+    Gentau::Utils
 
-  Gentau::App::AppContext
+    Gentau::App::AppContext
 
-  Gentau::App::UiFoundation
-  Gentau::App::BotHud
-  Gentau::App::ConfPanel
+    Gentau::App::SettingsUiPref
+
+    Gentau::App::UiFoundation
+    Gentau::App::BotHud
+    Gentau::App::ConfPanel
 )
 
 include(GNUInstallDirs)
