@@ -1,6 +1,6 @@
 #pragma once
 
-#include "models/bots/GBotStatus.hpp"
+#include "bots/GBotStatus.hpp"
 
 #include <QtQmlIntegration/qqmlintegration.h>
 

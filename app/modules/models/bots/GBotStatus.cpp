@@ -1,4 +1,4 @@
-#include "models/bots/GBotStatus.hpp"
+#include "bots/GBotStatus.hpp"
 
 namespace gentau {
 GBotStatus::GBotStatus(GMqttAdapter& client, QObject* parent) :

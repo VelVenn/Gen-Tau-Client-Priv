@@ -15,7 +15,7 @@
 
 #include "services/conn/GConnService.hpp"
 
-#include "models/bots/GBotStatus.hpp"
+#include "bots/GBotStatus.hpp"
 #include "models/hud/GHudModel.hpp"
 
 #include <atomic>
