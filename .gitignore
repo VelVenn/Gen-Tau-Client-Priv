@@ -96,6 +96,7 @@ temp/
 *tmp*.h
 *tmp*.hpp
 *tmp*.txt
+*tmp*.md
 
 *logs/
 *.log
