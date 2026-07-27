@@ -6,6 +6,8 @@
 
 #include "adapter/mqtt/GMqttAdapter.hpp"
 
+#include "message.qpb.h"
+
 #include "bots/common/GBotCommonStatus.hpp"
 #include "bots/common/GBotModel.hpp"
 
