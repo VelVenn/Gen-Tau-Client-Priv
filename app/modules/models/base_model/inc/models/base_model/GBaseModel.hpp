@@ -20,7 +20,9 @@ class GBaseModel : public QObject
 
   protected:
 	QProtobufSerializer& serializer() noexcept { return _serializer; }
-	GMqttAdapter&        client() noexcept { return _client; }
+
+	// TODO: considering use more specific api instead of exposing the whole client
+	GMqttAdapter& client() noexcept { return _client; }
 
 	virtual void resetStatus() {}
 
