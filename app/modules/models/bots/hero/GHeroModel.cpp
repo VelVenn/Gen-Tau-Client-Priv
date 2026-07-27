@@ -3,9 +3,12 @@
 #include "utils/TLog.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <span>
 
 #define T_LOG_TAG "[Hero Model] "
+
+using namespace std::chrono_literals;
 
 namespace gentau {
 bool GHeroModel::isDeployVt() const noexcept
@@ -192,9 +195,16 @@ void GHeroModel::parseCustomByteBlock(const QByteArray& data)
 	CustomByteBlock msg;
 
 	if (!msg.deserialize(&_serializer, data)) {
-		tLogWarn(
-			"Failed to parse CustomByteBlock: {}", _serializer.lastErrorString().toStdString()
-		);
+		static auto lastLogTime = std::chrono::steady_clock::now() - 5s;
+
+		const auto now = std::chrono::steady_clock::now();
+		if (now - lastLogTime >= 5s) {
+			tLogWarn(
+				"Failed to parse CustomByteBlock: {}", _serializer.lastErrorString().toStdString()
+			);
+			lastLogTime = now;
+		}
+
 		return;
 	}
 
@@ -351,9 +361,9 @@ GHeroModel::GHeroModel(InitPack deps) :
 GHeroModel::~GHeroModel()
 {
 	_deployModeAnimation.stop();
-    _pendingDeployMode.reset();
+	_pendingDeployMode.reset();
 
-    _deployVtQItem.setVisible(false);
-    _imgTransQItem.setVisible(true);
+	_deployVtQItem.setVisible(false);
+	_imgTransQItem.setVisible(true);
 }
 }  // namespace gentau
