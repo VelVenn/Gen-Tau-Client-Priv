@@ -4,18 +4,14 @@ file(
   CONFIGURE_DEPENDS "inc/*.hpp" "*.cpp"
 )
 
-gt_register_qt_lib(
-  TARGET conn-service
-  NO_ALIAS
-  REAL_TARGET_VAR CONN_SERVICE_TAR
-  QT_ARGS
-    STATIC
-    ${SRC_FILES}
-)
-
 gt_register_qml_mod(
   TARGET conn-service
+  REAL_TARGET_VAR CONN_SERVICE_TAR
   URI_SUFFIX Service.Conn
+  QT_ARGS
+    STATIC 
+    SOURCES
+      ${SRC_FILES}
 )
 
 target_include_directories(${CONN_SERVICE_TAR}

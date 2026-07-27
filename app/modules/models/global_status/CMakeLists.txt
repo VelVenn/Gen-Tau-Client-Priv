@@ -4,19 +4,14 @@ file(
   CONFIGURE_DEPENDS "inc/*.hpp" "*.cpp"
 )
 
-gt_register_qt_lib(
-  TARGET global-status-model
-  NO_ALIAS
-  REAL_TARGET_VAR GLOBAL_STATUS_MODEL_TAR
-  QT_ARGS
-    STATIC
-    ${SRC_FILES}
-)
-
 gt_register_qml_mod(
   TARGET global-status-model
   URI_SUFFIX Model.GlobalStatus
+  REAL_TARGET_VAR GLOBAL_STATUS_MODEL_TAR
   QT_ARGS
+    STATIC
+    SOURCES
+      ${SRC_FILES}
     IMPORTS
       TARGET Gentau::Qml::Message
 )

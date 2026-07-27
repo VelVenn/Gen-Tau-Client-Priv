@@ -14,22 +14,17 @@ file(
   CONFIGURE_DEPENDS "*.cpp"
 )
 
-gt_register_qt_lib(
-  TARGET bots-model
-  NO_ALIAS
-  REAL_TARGET_VAR BOTS_MODEL_TAR
-  QT_ARGS
-    STATIC
-    ${SRC_FILES} 
-    ${HEADER_FILES}
-)
-
 gt_register_qml_mod(
   TARGET bots-model
   URI_SUFFIX Bot
+  REAL_TARGET_VAR BOTS_MODEL_TAR
   QT_ARGS
+    STATIC
     DEPENDENCIES
       TARGET Gentau::Qml::Bot::Common
+    SOURCES
+      ${SRC_FILES}
+      ${HEADER_FILES}
 )
 
 target_include_directories(${BOTS_MODEL_TAR}

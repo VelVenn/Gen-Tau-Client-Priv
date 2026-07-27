@@ -10,20 +10,15 @@ file(
   CONFIGURE_DEPENDS "*.cpp"
 )
 
-gt_register_qt_lib(
-  TARGET hud-model
-  NO_ALIAS
-  REAL_TARGET_VAR HUD_MODEL_TAR
-  QT_ARGS
-    STATIC
-    ${INC_FILES}
-    ${SRC_FILES}
-)
-
 gt_register_qml_mod(
   TARGET hud-model
   URI_SUFFIX Model.Hud
+  REAL_TARGET_VAR HUD_MODEL_TAR
   QT_ARGS
+    STATIC
+    SOURCES
+      ${INC_FILES}
+      ${SRC_FILES}
     DEPENDENCIES
       TARGET Gentau::Qml::Model::GlobalStatus
       TARGET Gentau::Qml::Model::GameStatus

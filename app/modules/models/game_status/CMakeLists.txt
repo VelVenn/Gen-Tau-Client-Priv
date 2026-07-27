@@ -4,19 +4,14 @@ file(
   CONFIGURE_DEPENDS "inc/*.hpp" "*.cpp"
 )
 
-gt_register_qt_lib(
-  TARGET game-status-model
-  NO_ALIAS
-  REAL_TARGET_VAR GAME_STATUS_MODEL_TAR
-  QT_ARGS
-    STATIC
-    ${SRC_FILES}
-)
-
 gt_register_qml_mod(
   TARGET game-status-model
   URI_SUFFIX Model.GameStatus
+  REAL_TARGET_VAR GAME_STATUS_MODEL_TAR
   QT_ARGS
+    STATIC
+    SOURCES
+      ${SRC_FILES}
     IMPORTS
       TARGET Gentau::Qml::Message
 )
