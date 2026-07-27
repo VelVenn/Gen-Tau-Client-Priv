@@ -161,9 +161,10 @@ Item {
 
             width: 145
 
-            borderColor: Qt.darker(Qt.alpha(root.lightBlue, 0.6), 1.2)
+            // borderColor: Qt.darker(Qt.alpha(root.lightBlue, 0.6), 1.2)
 
-            borderWidth: 3
+            // borderWidth: 3
+            borderColor: 'transparent'
             borderRadius: 6
 
             badgeGradient: LinearGradient {
@@ -238,9 +239,10 @@ Item {
             font.pixelSize: 12
             font.bold: true
 
-            borderWidth: 2
+            // borderWidth: 2
             borderRadius: 4
-            borderColor: Qt.darker(Qt.alpha(root.lightBlue, 0.6), 1.2)
+            borderColor: 'transparent'
+            // borderColor: Qt.darker(Qt.alpha(root.lightBlue, 0.6), 1.2)
 
             badgeGradient: Gradient {
                 GradientStop {

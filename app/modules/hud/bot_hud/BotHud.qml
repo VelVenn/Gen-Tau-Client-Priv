@@ -17,6 +17,7 @@ Item {
     layer.samples: 4
 
     readonly property int ourBotIdx: BotMeta.idStrToBotIdx(Context.connService.requestedId)
+    readonly property int connectedBotIdx: BotMeta.idStrToBotIdx(Context.connService.clientId)
 
     readonly property int ourCamp: BotMeta.toBotCamp(root.ourBotIdx)
 
@@ -39,7 +40,7 @@ Item {
 
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 2.5 * root.scaleFactor
+        anchors.topMargin: 5 * root.scaleFactor
 
         scaleFactor: root.scaleFactor
 
@@ -137,6 +138,7 @@ Item {
         anchors.leftMargin: 50 * root.scaleFactor
         anchors.bottomMargin: 100 * root.scaleFactor
 
+        botIdx: root.connectedBotIdx
         commonStatus: Context.botStatus.commonStatus
 
         scaleFactor: root.scaleFactor

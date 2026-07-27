@@ -17,11 +17,11 @@ Item {
     property real scaleFactor: 1.0
 
     required property BotCommonStatus commonStatus
+    required property int botIdx
 
     readonly property robotStaticStatus staticStatus: commonStatus.staticStatus
     readonly property robotDynamicStatus dynamicStatus: commonStatus.dynamicStatus
 
-    readonly property int botIdx: staticStatus.robotId
     readonly property int botLv: staticStatus.level
 
     readonly property int botExp: dynamicStatus.currentExperience
