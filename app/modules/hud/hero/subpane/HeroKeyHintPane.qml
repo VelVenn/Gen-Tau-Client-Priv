@@ -94,11 +94,11 @@ Item {
                     hintText: root.isDeployVt ? "切换官方图传" : "切换部署图传"
                     isPressed: root.isJPressed
 
-                    visible: root.alwaysShow
+                    visible: root.alwaysShow && !root.isDeployMode
                 }
 
                 HintSeparator {
-                    visible: root.alwaysShow
+                    visible: root.alwaysShow && !root.isDeployMode
                 }
 
                 KeyHint {
