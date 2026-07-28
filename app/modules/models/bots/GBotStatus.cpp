@@ -10,6 +10,8 @@ void GBotStatus::rebuildBotModel()
 {
 	if (!_curBingding.has_value() || !_factory) { return; }
 
+	auto oldModel = std::move(_botModel); // Prevent QML reading dangling pointer during model rebuild
+
 	_botModel = _factory->createBotModel(_curBingding->clientId, _curBingding->gen, _commonStatus);
 
 	Q_EMIT botModelChanged(_botModel.get());
