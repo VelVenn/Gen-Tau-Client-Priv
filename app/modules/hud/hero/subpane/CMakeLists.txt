@@ -12,15 +12,20 @@ gt_register_qml_mod(
     ${QML_FILES}
   QT_ARGS
     STATIC
-    IMPORTS
+    DEPENDENCIES
       TARGET Gentau::Qml::Foundation
       TARGET Gentau::Qml::HeroHud::Element
+      TARGET Gentau::Qml::Bot::Hero
 )
 
 target_link_libraries(${HERO_HUD_SUB_TAR}
   PRIVATE
     Qt6::Quick
+
   PUBLIC
+    Gentau::App::BotsCommon
+    Gentau::App::BotsHero
+
     Gentau::App::UiFoundation::Plugin
     Gentau::App::HeroHudElem
 )

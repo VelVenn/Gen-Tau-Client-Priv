@@ -17,11 +17,26 @@ gt_register_qml_mod(
     STATIC
     DEPENDENCIES
       TARGET Gentau::Qml::HeroHud::Subpane
+
+      TARGET Gentau::Qml::Message
+
+      TARGET Gentau::Qml::Settings::UiPref
+
+      TARGET Gentau::Qml::Bot::Hero 
+      TARGET Gentau::Qml::Bot::Common
 )
 
 target_link_libraries(${HERO_HUD_TAR}
-  PRIVATE
+  PUBLIC
     Qt6::Quick
 
+    Gentau::App::BotsCommon::Plugin
+    Gentau::App::BotsHero::Plugin
+
+    Gentau::App::Msg::Plugin
+
+    Gentau::App::SettingsUiPref::Plugin
+
+  PRIVATE
     Gentau::App::HeroHudSub::Plugin
 )

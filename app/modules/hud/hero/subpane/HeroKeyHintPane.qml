@@ -8,25 +8,26 @@ import QtQuick.Effects
 import Gentau.Foundation
 import Gentau.HeroHud.Element
 
+import Gentau.Bot.Hero
+
 Item {
     id: root
 
     property real scaleFactor: 1.0
 
+    required property HeroModel heroModel
+
     property bool alwaysShow: true
 
-    property bool isDeployVt: false
-    property bool isDeployMode: false
+    readonly property bool isDeployVt: heroModel.isDeployVt
+    readonly property bool isDeployMode: heroModel.isDeployMode
 
-    property alias deployModeProgress: deployModeHint.pressProgress
+    readonly property real deployModeProgress: heroModel.deployModeProgress
 
-    property bool isJPressed: false
-    property bool isHPressed: false
-    property bool isKPressed: false
-    property bool isLPressed: false
-
-    implicitWidth: content.childrenRect.width * scaleFactor
-    implicitHeight: content.childrenRect.height * scaleFactor
+    readonly property bool isJPressed: heroModel.isJPressed
+    readonly property bool isHPressed: heroModel.isHPressed
+    readonly property bool isKPressed: heroModel.isKPressed
+    readonly property bool isLPressed: heroModel.isLPressed
 
     component HintSeparator: Rectangle {
         Layout.preferredWidth: 2
@@ -36,6 +37,9 @@ Item {
 
         color: Qt.alpha("white", 0.5)
     }
+
+    implicitWidth: content.childrenRect.width * scaleFactor
+    implicitHeight: content.childrenRect.height * scaleFactor
 
     Item {
         id: content
@@ -118,11 +122,13 @@ Item {
 
                     actionText: "长按"
                     keyTexts: [root.isDeployMode ? "L" : "K"]
-                    hintText: root.isDeployMode ? "退出部署模式" : "进入部署模式"
+                    hintText: root.isDeployMode ? "请求退出部署模式" : "请求进入部署模式"
 
                     isPressed: root.isDeployMode ? root.isLPressed : root.isKPressed
 
                     interactMode: KeyHint.Mode.Delay
+
+                    pressProgress: root.deployModeProgress
 
                     visible: root.alwaysShow || root.deployModeProgress > 0.0
                 }
