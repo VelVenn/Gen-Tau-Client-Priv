@@ -46,4 +46,7 @@ target_link_libraries(${APP_CONTEXT_TAR}
 
     Gentau::App::HudModel
     Gentau::App::BotsModel
+
+  PRIVATE
+    Gentau::App::BotsFactory
 )

@@ -7,6 +7,8 @@
 #include "adapter/mqtt/GMqttAdapter.hpp"
 #include "utils/TLog.hpp"
 
+#include "bots/factory/GBotFactory.hpp"
+
 #include <algorithm>
 #include <stdexcept>
 #include <string_view>
@@ -130,6 +132,8 @@ void GAppContext::finalizeVidRenderersInit(bool success)
 
 void GAppContext::bindToWindow(QQuickWindow* window)
 {
+	using InitPack = GBotFactory::InitPack;
+
 	if (!window) {
 		const auto cause = "Invalid QQuickWindow to bind video renderers: window is nullptr"sv;
 
@@ -174,6 +178,14 @@ void GAppContext::bindToWindow(QQuickWindow* window)
 	);
 
 	_inputEventDispatcher.attachWindow(window);
+
+	auto initPack = InitPack{ .deployVt      = *_deployVtRender,
+							  .client        = _client,
+							  .inputCtrl     = _inputEventDispatcher,
+							  .imgTransQItem = _imgTransQItem,
+							  .deployVtQItem = _deployVtQItem };
+
+	_botStatus.setFactory(std::make_unique<GBotFactory>(std::move(initPack)));
 
 	tryResizeWindowOnInit(window);
 }
