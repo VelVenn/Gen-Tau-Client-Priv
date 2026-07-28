@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QPointer>
 #include <QProtobufSerializer>
 #include <QQuickItem>
 #include <QVariantAnimation>
@@ -52,8 +53,8 @@ class GHeroModel : public GBotModel
 		GBotCommonStatus&      commonStatus;
 		TBytesVidRender&       deployVt;
 		GInputEventDispatcher& inputCtrl;
-		QQuickItem&            imgTransQItem;
-		QQuickItem&            deployVtQItem;
+		QPointer<QQuickItem>   imgTransQItem;
+		QPointer<QQuickItem>   deployVtQItem;
 	};
 
   private:
@@ -114,8 +115,8 @@ class GHeroModel : public GBotModel
 	TBytesVidRender&       _deployVt;
 	GInputEventDispatcher& _inputCtrl;
 
-	QQuickItem& _imgTransQItem;
-	QQuickItem& _deployVtQItem;
+	QPointer<QQuickItem> _imgTransQItem;
+	QPointer<QQuickItem> _deployVtQItem;
 
 	QVariantAnimation _deployModeAnimation;
 

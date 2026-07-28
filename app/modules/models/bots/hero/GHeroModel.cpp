@@ -48,8 +48,8 @@ double GHeroModel::deployModeProgress() const noexcept
 
 void GHeroModel::setDeployVt(bool isDeployVt)
 {
-	_deployVtQItem.setVisible(isDeployVt);
-	_imgTransQItem.setVisible(!isDeployVt);
+	if (_deployVtQItem) { _deployVtQItem->setVisible(isDeployVt); }
+	if (_imgTransQItem) { _imgTransQItem->setVisible(!isDeployVt); }
 
 	if (_isDeployVt == isDeployVt) { return; }
 
@@ -301,6 +301,9 @@ GHeroModel::GHeroModel(InitPack deps) :
 	_imgTransQItem(deps.imgTransQItem),
 	_deployVtQItem(deps.deployVtQItem)
 {
+	Q_ASSERT(_imgTransQItem);
+	Q_ASSERT(_deployVtQItem);
+
 	_deployModeAnimation.setDuration(static_cast<int>(pressDeployModeTimeOut));
 	_deployModeAnimation.setStartValue(0.0);
 	_deployModeAnimation.setEndValue(1.0);
@@ -363,7 +366,7 @@ GHeroModel::~GHeroModel()
 	_deployModeAnimation.stop();
 	_pendingDeployMode.reset();
 
-	_deployVtQItem.setVisible(false);
-	_imgTransQItem.setVisible(true);
+	if (_deployVtQItem) { _deployVtQItem->setVisible(false); }
+	if (_imgTransQItem) { _imgTransQItem->setVisible(true); }
 }
 }  // namespace gentau
