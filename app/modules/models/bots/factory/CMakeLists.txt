@@ -23,6 +23,7 @@ target_link_libraries(${BOTS_FACTORY_TAR}
 
   PRIVATE 
     Qt6::Quick
+    Gentau::Utils
     Gentau::App::BotsCommon
     Gentau::App::BotsHero
 )

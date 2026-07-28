@@ -5,6 +5,10 @@
 #include "bots/common/GBotModel.hpp"
 #include "bots/hero/GHeroModel.hpp"
 
+#include "utils/TLog.hpp"
+
+#define T_LOG_TAG "[Bot Factory] "
+
 using namespace std;
 
 namespace gentau {
@@ -17,7 +21,12 @@ unique_ptr<GBotModel> GBotFactory::createBotModel(
 
 	idx = clientId.toUInt(&ok);
 
-	if (!ok) { return nullptr; }
+	if (!ok) { 
+		tLogWarn("Failed to convert clientId to usigned int: {}", clientId.toStdString());
+		return nullptr; 
+	}
+
+	tLogDebug("Recieved id: {}", idx);
 
 	switch (idx) {
 		case 1:
