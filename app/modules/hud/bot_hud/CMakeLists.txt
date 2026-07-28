@@ -16,6 +16,12 @@ file(
   CONFIGURE_DEPENDS "subpane/images/*"
 )
 
+file(
+  GLOB HUD_FILES
+  RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+  CONFIGURE_DEPENDS "*.qml"
+)
+
 gt_register_qml_mod(
   TARGET bot-hud-elem
   URI_SUFFIX BotHud.Element
@@ -76,14 +82,19 @@ gt_register_qml_mod(
   URI_SUFFIX BotHud 
   REAL_TARGET_VAR BOT_HUD_TAR
   QML_FILES
-    "BotHud.qml"
+    ${HUD_FILES}
   QT_ARGS
     STATIC
     DEPENDENCIES
       TARGET Gentau::Qml::BotHud::Subpane
-      TARGET Gentau::Qml::HeroHud
       TARGET Gentau::Qml::Settings::UiPref
       TARGET Gentau::Qml::Context
+
+      TARGET Gentau::Qml::Bot
+      TARGET Gentau::Qml::Bot::Common
+      TARGET Gentau::Qml::Bot::Hero
+
+      TARGET Gentau::Qml::HeroHud
 )
 
 target_link_libraries(${BOT_HUD_TAR}
@@ -92,5 +103,10 @@ target_link_libraries(${BOT_HUD_TAR}
     ${BOT_HUD_SUB_TAR}
     Gentau::App::SettingsUiPref
     Gentau::App::AppContext::Plugin
+
+    Gentau::App::BotsModel::Plugin
+    Gentau::App::BotsCommon::Plugin
+    Gentau::App::BotsHero::Plugin
+
     Gentau::App::HeroHud::Plugin
 )

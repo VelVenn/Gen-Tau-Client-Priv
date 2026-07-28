@@ -2,8 +2,6 @@ import QtQuick
 
 import Gentau.BotHud.Subpane
 
-import Gentau.HeroHud
-
 import Gentau.Settings.UiPref
 
 import Gentau.Context
@@ -157,10 +155,13 @@ Item {
         scaleFactor: 1.1 * root.scaleFactor
     }
 
-    HeroHud {
-        id: heroHud
+    SpecificHudLoader {
+        id: specificHudLoader
 
         anchors.fill: parent
+
+        botModel: Context.botStatus.botModel
+        commonStatus: Context.botStatus.commonStatus
 
         scaleFactor: root.scaleFactor
     }
