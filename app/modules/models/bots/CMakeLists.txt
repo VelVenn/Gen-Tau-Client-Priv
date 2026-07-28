@@ -40,4 +40,5 @@ target_link_libraries(${BOTS_MODEL_TAR}
     Gentau::App::BotsCommon
   PRIVATE
     Gentau::Utils
+    Gentau::App::BotsFactory
 )

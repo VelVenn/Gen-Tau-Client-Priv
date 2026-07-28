@@ -10,8 +10,10 @@
 Q_MOC_INCLUDE("bots/common/GBotModel.hpp")
 
 #include <memory>
+#include <optional>
 
 namespace gentau {
+class GBotFactory;
 class GBotModel;
 
 class GBotStatus : public QObject
@@ -25,8 +27,21 @@ class GBotStatus : public QObject
 	void botModelChanged(gentau::GBotModel* newBotModel);
 
   public:
+	struct BindingInfo
+	{
+		QString clientId;
+		quint64 gen;
+	};
+
+  public:
 	GBotCommonStatus* commonStatus() noexcept { return &_commonStatus; }
 	GBotModel*        botModel() noexcept { return _botModel.get(); }
+
+	void setFactory(std::unique_ptr<GBotFactory> factory);
+
+  private:
+	void onBindingChanged(const QString& clientId, const QString&, quint64 gen);
+	void rebuildBotModel();
 
   private:
 	QProtobufSerializer _serializer;
@@ -35,7 +50,9 @@ class GBotStatus : public QObject
   private:
 	GBotCommonStatus _commonStatus;
 
-	std::unique_ptr<GBotModel> _botModel{ nullptr };
+	std::optional<BindingInfo>   _curBingding{ std::nullopt };
+	std::unique_ptr<GBotFactory> _factory{ nullptr };
+	std::unique_ptr<GBotModel>   _botModel{ nullptr };
 
   public:
 	explicit GBotStatus(GMqttAdapter& client, QObject* parent = nullptr);
