@@ -17,6 +17,7 @@
 
 #include "input/GInputEventDispatcher.hpp"
 
+#include <chrono>
 #include <optional>
 
 namespace gentau {
@@ -56,6 +57,8 @@ class GHeroModel : public GBotModel
 		QPointer<QQuickItem>   imgTransQItem;
 		QPointer<QQuickItem>   deployVtQItem;
 	};
+
+	using TimePoint = std::chrono::steady_clock::time_point;
 
   private:
 	static constexpr quint32 pressDeployModeTimeOut = 500;  // ms
@@ -109,7 +112,8 @@ class GHeroModel : public GBotModel
 	bool   _serverDeployMode{ false };
 	double _deployModeProgress{ 0.0 };
 
-	std::optional<bool> _pendingDeployMode{ std::nullopt };
+	std::optional<bool>      _pendingDeployMode{ std::nullopt };
+	std::optional<TimePoint> _lastDeployVtRestartTime{ std::nullopt };
 
   private:
 	TBytesVidRender&       _deployVt;

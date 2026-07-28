@@ -48,6 +48,8 @@ double GHeroModel::deployModeProgress() const noexcept
 
 void GHeroModel::setDeployVt(bool isDeployVt)
 {
+	isDeployVt = isDeployVt && isHeroRanged();
+
 	if (_deployVtQItem) { _deployVtQItem->setVisible(isDeployVt); }
 	if (_imgTransQItem) { _imgTransQItem->setVisible(!isDeployVt); }
 
@@ -274,6 +276,13 @@ void GHeroModel::onNewKeyEvent(const GInputEventDispatcher::KeyboardEventInfo ev
 void GHeroModel::restartDeployVt()
 {
 	if (!_isDeployVt) { return; }
+
+	const auto now = std::chrono::steady_clock::now();
+	if (_lastDeployVtRestartTime.has_value() && now - _lastDeployVtRestartTime.value() < 500ms) {
+		return;
+	}
+
+	_lastDeployVtRestartTime = now;
 
 	if (!_deployVt.flush()) { tLogWarn("Failed to flush deploy video renderer"); }
 
