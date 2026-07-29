@@ -64,9 +64,9 @@ void GHeroModel::setDeployMode(bool isDeployMode)
 	if (_isDeployMode == isDeployMode) { return; }
 
 	cancelDeployModePress();
-	_isDeployMode = isDeployMode;
 
-	if (_isDeployMode) { setDeployVt(true); }
+	_isDeployMode = isDeployMode;
+	setDeployVt(isDeployMode);
 
 	Q_EMIT isDeployModeChanged(_isDeployMode);
 }
