@@ -121,6 +121,8 @@ Item {
 
         anchors.rightMargin: 500 * root.scaleFactor
 
+        shadowOnLeft: false
+
         scaleFactor: root.scaleFactor
 
         leftAmmo: root.botDynoStatus.remainingAmmo

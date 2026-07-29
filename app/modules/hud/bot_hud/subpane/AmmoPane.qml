@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Controls.Material
@@ -14,6 +16,8 @@ Item {
 
     property int leftAmmo: 0
     property real ammoSpd: 0.0
+
+    property bool shadowOnLeft: true
 
     property real scaleFactor: 1.0
 
@@ -63,7 +67,7 @@ Item {
 
         shadowBlur: 0.8
 
-        shadowHorizontalOffset: -5
+        shadowHorizontalOffset: root.shadowOnLeft ? -5 : 5
         shadowVerticalOffset: 5
 
         // 这个属性会让光晕自由扩散，并且不会被矩形边界像切豆腐一样切成硬直角死边！
