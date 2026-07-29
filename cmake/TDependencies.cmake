@@ -19,24 +19,57 @@ set(GT_QT_COMPONENTS
   ProtobufQuick
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  list(APPEND GT_QT_COMPONENTS WaylandClient)
-endif()
-
 find_package(Qt6 6.8 REQUIRED COMPONENTS
   ${GT_QT_COMPONENTS}
 )
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  find_package(Wayland REQUIRED COMPONENTS Client)
-  find_package(WaylandScanner REQUIRED)
-endif()
 
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(GST REQUIRED IMPORTED_TARGET gstreamer-1.0>=1.26)
 pkg_check_modules(GST_VID REQUIRED IMPORTED_TARGET gstreamer-video-1.0>=1.26)
 pkg_check_modules(GST_APP REQUIRED IMPORTED_TARGET gstreamer-app-1.0>=1.26)
+
+set(GEN_TAU_WAYLAND_AVAILABLE OFF)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux"
+   AND NOT GEN_TAU_WAYLAND STREQUAL "OFF")
+
+  find_package(Qt6 6.8 QUIET COMPONENTS WaylandClient)
+  find_package(Wayland QUIET COMPONENTS Client)
+  find_package(WaylandScanner QUIET)
+
+  pkg_get_variable(
+    WAYLAND_PROTOCOLS_DATA_DIR
+    wayland-protocols
+    pkgdatadir
+  )
+
+  set(POINTER_CONSTRAINTS_PROTOCOL
+    "${WAYLAND_PROTOCOLS_DATA_DIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"
+  )
+  set(RELATIVE_POINTER_PROTOCOL
+    "${WAYLAND_PROTOCOLS_DATA_DIR}/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
+  )
+
+  if(TARGET Qt6::WaylandClient
+     AND TARGET Wayland::Client
+     AND WaylandScanner_FOUND
+     AND EXISTS "${POINTER_CONSTRAINTS_PROTOCOL}"
+     AND EXISTS "${RELATIVE_POINTER_PROTOCOL}")
+
+    set(GEN_TAU_WAYLAND_AVAILABLE ON)
+    message(STATUS "Wayland input support enabled")
+
+  elseif(GEN_TAU_WAYLAND STREQUAL "ON")
+    message(FATAL_ERROR
+      "Wayland support was explicitly enabled, but its dependencies are incomplete"
+    )
+  else()
+    message(WARNING
+      "Wayland dependencies are incomplete; Wayland input support is disabled"
+    )
+  endif()
+endif()
 
 include(FetchContent)
 
