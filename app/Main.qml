@@ -113,4 +113,8 @@ Window {
             }
         }
     }
+
+    Component.onCompleted: {
+        confLoader.active = true;
+    }
 }
