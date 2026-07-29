@@ -15,7 +15,7 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 QT_VERSION="${QT_VERSION:-6.11.0}"
 QT_ROOT="${QT_ROOT:-$HOME/Qt/$QT_VERSION/gcc_64}"
 
-BUILD_DIR="${BUILD_DIR:-$ROOT/build_rel}"
+BUILD_DIR="${BUILD_DIR:-$ROOT/build}"
 BIN="${CLIENT_BIN:-$BUILD_DIR/bin/gen-tau}"
 
 if [[ ! -x "$BIN" ]]; then
