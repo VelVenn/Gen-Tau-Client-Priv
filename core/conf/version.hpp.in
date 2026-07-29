@@ -12,8 +12,13 @@
 #cmakedefine01 GEN_TAU_LOG_TO_CONSOLE
 #cmakedefine01 GEN_TAU_LOG_TO_FILE
 #cmakedefine01 GEN_TAU_VT_HEADER_FROM_BI
+#cmakedefine01 GEN_TAU_WAYLAND_AVAILABLE
 
 #define GEN_TAU_LOG_LEVEL "@GEN_TAU_LOG_LEVEL@"
+
+#if defined(GEN_TAU_WAYLAND_AVAILABLE) && (GEN_TAU_WAYLAND_AVAILABLE == 1)
+# define GT_HAS_WAYLAND
+#endif
 
 #define GT_QML_MOD_URI_PREFIX "@GT_QML_MOD_URI_PREFIX@"
 #define GT_QML_MOD_VERSION_MAJOR @GT_QML_MOD_VERSION_MAJOR@
@@ -31,5 +36,7 @@ constexpr bool TLogToConsole = (GEN_TAU_LOG_TO_CONSOLE == 1);
 constexpr bool TLogToFile = (GEN_TAU_LOG_TO_FILE == 1);
 
 constexpr bool TVTHeaderFromBi = (GEN_TAU_VT_HEADER_FROM_BI == 1);
+
+constexpr bool GWaylandAvailable = (GEN_TAU_WAYLAND_AVAILABLE == 1);
 }  // namespace conf
 }  // namespace gentau

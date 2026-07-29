@@ -37,7 +37,7 @@ target_link_libraries(${INPUT_TAR}
     Gentau::Utils
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(GEN_TAU_WAYLAND_AVAILABLE)
   include(cmake/GGenWaylandSource.cmake)
 endif()
 
