@@ -2,17 +2,19 @@
 
 #include "native/GCursorControlBackend.hpp"
 
+#include "conf/version.hpp"
+
 #include <QGuiApplication>
 #include <QWindow>
 
-#ifdef Q_OS_LINUX
+#ifdef GT_HAS_WAYLAND
 #include "native/wayland/GWaylandCursorControl.hpp"
 #endif
 
 namespace gentau {
 GCursorControl::GCursorControl(QWindow* window, QObject* parent) : QObject(parent)
 {
-#ifdef Q_OS_LINUX
+#ifdef GT_HAS_WAYLAND
 	if (window && QGuiApplication::platformName().startsWith("wayland", Qt::CaseInsensitive)) {
 		_backend = std::make_unique<GWaylandCursorControl>(window, [this](LockState state) {
 			updateLockState(state);

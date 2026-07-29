@@ -1,3 +1,3 @@
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(GEN_TAU_WAYLAND_AVAILABLE)
   add_subdirectory(wayland)
 endif()

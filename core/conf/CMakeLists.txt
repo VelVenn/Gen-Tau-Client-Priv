@@ -1,6 +1,6 @@
 configure_file(
     version.hpp.in
-    "${CMAKE_CURRENT_SOURCE_DIR}/inc/conf/version.hpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/inc/conf/version.hpp"
     @ONLY
     NEWLINE_STYLE UNIX
 )
