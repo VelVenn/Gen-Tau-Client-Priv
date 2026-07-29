@@ -109,20 +109,40 @@ function(gt_register_mod)
   # ===============
 
   # 设置模块头文件目录
-  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/inc")
-    if(GT_MOD_TYPE STREQUAL "INTERFACE")
-      target_include_directories(${REAL_MOD_NAME} INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
-      )
-    else()
-      target_include_directories(${REAL_MOD_NAME} PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+  set(MOD_INCLUDE_DIRS "")
+
+  foreach(INC_DIR IN ITEMS
+    "${CMAKE_CURRENT_SOURCE_DIR}/inc"
+    "${CMAKE_CURRENT_BINARY_DIR}/inc"
+  )
+    if(IS_DIRECTORY "${INC_DIR}")
+      list(APPEND MOD_INCLUDE_DIRS
+        "$<BUILD_INTERFACE:${INC_DIR}>"
       )
     endif()
-    message(STATUS "gt_register_mod -> ${GT_MOD_NAME}: Include directory set to '${CMAKE_CURRENT_SOURCE_DIR}/inc/'")
-  else()
-    message(FATAL_ERROR "!! gt_register_mod -> ${GT_MOD_NAME}: No '${CMAKE_CURRENT_SOURCE_DIR}/inc/' directory found, you must create it explicitly !!")
+  endforeach()
+
+  if(NOT MOD_INCLUDE_DIRS)
+    message(FATAL_ERROR
+      "!! gt_register_mod -> ${GT_MOD_NAME}: "
+      "Neither source nor binary include directory exists !!"
+    )
   endif()
+
+  if(GT_MOD_TYPE STREQUAL "INTERFACE")
+    target_include_directories(${REAL_MOD_NAME}
+      INTERFACE ${MOD_INCLUDE_DIRS}
+    )
+  else()
+    target_include_directories(${REAL_MOD_NAME}
+      PUBLIC ${MOD_INCLUDE_DIRS}
+    )
+  endif()
+
+  message(STATUS
+    "gt_register_mod -> ${GT_MOD_NAME}: "
+    "Include directories set to '${MOD_INCLUDE_DIRS}'"
+  )
   # ===============
 
   # 解析模块依赖
