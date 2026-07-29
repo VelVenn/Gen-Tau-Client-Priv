@@ -71,7 +71,8 @@ class GAppContext::GInitVidRenderTask final : public QRunnable
 
 static void tryResizeWindowOnInit(QQuickWindow* window)
 {
-	if (!window) { return; }
+	// 全屏尺寸由窗口系统异步配置；此处主动 resize 会把启动尺寸误当成全屏尺寸。
+	if (!window || window->visibility() != QWindow::Windowed) { return; }
 
 	constexpr auto singleQueuedConnection =
 		static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::SingleShotConnection);
@@ -82,6 +83,8 @@ static void tryResizeWindowOnInit(QQuickWindow* window)
 		&QQuickWindow::frameSwapped,
 		window,
 		[window] {
+			if (window->visibility() != QWindow::Windowed) { return; }
+
 			const QSize targetSize = window->size();
 			const QSize nudgedSize{ std::max(1, targetSize.width() - 2),
 									std::max(1, targetSize.height() - 2) };
@@ -92,7 +95,10 @@ static void tryResizeWindowOnInit(QQuickWindow* window)
 				&QQuickWindow::widthChanged,
 				window,
 				[window, targetSize, nudgedSize](int width) {
-					if (width != nudgedSize.width()) { return; }
+					if (window->visibility() != QWindow::Windowed ||
+						width != nudgedSize.width()) {
+						return;
+					}
 
 					// 保证 Qt 至少用缩小后的尺寸渲染一帧，然后恢复。
 					QObject::connect(
@@ -100,6 +106,8 @@ static void tryResizeWindowOnInit(QQuickWindow* window)
 						&QQuickWindow::frameSwapped,
 						window,
 						[window, targetSize] {
+							if (window->visibility() != QWindow::Windowed) { return; }
+
 							window->resize(targetSize);
 							window->update();
 						},

@@ -57,10 +57,10 @@ class GConnService : public QObject
 	};
 
   private:
-	static constexpr auto remoteClientUri = "mqtt://192.168.12.2:3333";
+	static constexpr auto remoteClientUri = "mqtt://192.168.12.1:3333";
 	static constexpr auto localClientUri  = "mqtt://localhost:3333";
 
-	static constexpr auto remoteUdpHost = "192.168.12.2";
+	static constexpr auto remoteUdpHost = "192.168.12.1";
 	static constexpr auto localUdpHost  = "127.0.0.1";
 	static constexpr auto udpPort       = 3334;
 
