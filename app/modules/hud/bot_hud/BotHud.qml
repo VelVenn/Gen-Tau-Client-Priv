@@ -113,11 +113,13 @@ Item {
         visible: UiPref.showCrosshair
     }
 
-    SpiltAmmoPane {
-        id: centerAmmoHud
+    AmmoPane {
+        id: ammoHud
 
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: 2 * root.scaleFactor
+        anchors.verticalCenter: centerCross.verticalCenter
+        anchors.right: centerCross.left
+
+        anchors.rightMargin: 500 * root.scaleFactor
 
         scaleFactor: root.scaleFactor
 
