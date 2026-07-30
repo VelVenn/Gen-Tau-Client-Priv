@@ -72,6 +72,10 @@ class GHeroModel : public GBotModel
 	bool   isLPressed() const noexcept;
 	double deployModeProgress() const noexcept;
 
+	Q_INVOKABLE void publishPerformanceModeCmd(
+		GBotCommonStatus::ShooterPerformance mode = GBotCommonStatus::ShooterPerformance::HeroMelee
+	);
+
   private:
 	void setDeployVt(bool isDeployVt);
 	void setDeployMode(bool isDeployMode);

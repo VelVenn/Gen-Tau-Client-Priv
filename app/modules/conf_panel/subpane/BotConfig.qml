@@ -5,7 +5,12 @@ import QtQuick.Layouts
 import Gentau.Foundation
 import Gentau.ConfPanel.Element
 
+import Gentau.Message
+
 import Gentau.Service.Conn
+
+import Gentau.Bot.Common
+import Gentau.Bot.Hero
 
 ScrollView {
     id: root
@@ -13,13 +18,22 @@ ScrollView {
     clip: true
 
     required property ConnService connService
+    required property BotCommonStatus commonStatus
+    required property BotModel botModel
+
+    readonly property robotPerformanceSelectionSync performanceMode: commonStatus.performanceSelection
+
+    readonly property HeroModel heroModel: botModel as HeroModel
 
     readonly property int curBotIdx: BotMeta.idStrToBotIdx(root.connService.clientId)
-
     readonly property int curConnMode: root.connService.connMode
 
-    property int curShooterPerfMode: 0
-    property int curChassisPerfMode: 0
+    readonly property int curShooterPerfMode: {
+        root.performanceMode.hasShooter ? root.performanceMode.shooter : 0;
+    }
+    readonly property int curChassisPerfMode: {
+        root.performanceMode.hasChassis ? root.performanceMode.chassis : 0;
+    }
 
     component RootGroupBoxBg: Rectangle {
         color: Qt.darker(Style.grayBlue, 1.1)
@@ -44,8 +58,7 @@ ScrollView {
             }
         }
 
-        readonly property string curConnModeStr:
-            root.connService.connModeToString(root.curConnMode)
+        readonly property string curConnModeStr: root.connService.connModeToString(root.curConnMode)
 
         readonly property color curConnModeColor: {
             switch (root.curConnMode) {
@@ -58,9 +71,7 @@ ScrollView {
         }
 
         readonly property int selectedConnMode: {
-            return connModeTab.currentIndex === 0
-                ? ConnService.ConnMode.Remote
-                : ConnService.ConnMode.Local;
+            return connModeTab.currentIndex === 0 ? ConnService.ConnMode.Remote : ConnService.ConnMode.Local;
         }
 
         readonly property bool showPerformCards: {
@@ -88,27 +99,27 @@ ScrollView {
 
         readonly property int heroPerformTabChoseMode: {
             if (heroPerformTab.currentIndex === 0)
-                return BotMeta.shooterPerformMode.HeroMelee; // 3
+                return BotCommonStatus.ShooterPerformance.HeroMelee; // 3
 
-            return BotMeta.shooterPerformMode.HeroRemote; // 4
+            return BotCommonStatus.ShooterPerformance.HeroRanged; // 4
         }
 
         readonly property int initHeroPerfTabIdx: {
-            if (root.curShooterPerfMode === BotMeta.shooterPerformMode.HeroRemote)
+            if (root.curShooterPerfMode === BotCommonStatus.ShooterPerformance.HeroRanged)
                 return 1;
 
             return 0;
         }
 
         readonly property int initInfanShooterTabIdx: {
-            if (root.curShooterPerfMode === BotMeta.shooterPerformMode.Burst)
+            if (root.curShooterPerfMode === BotCommonStatus.ShooterPerformance.BurstFirst)
                 return 1;
 
             return 0;
         }
 
         readonly property int initInfanChassisTabIdx: {
-            if (root.curChassisPerfMode === BotMeta.chassisPerformMode.Power)
+            if (root.curChassisPerfMode === BotCommonStatus.ChassisPerformance.PowerFirst)
                 return 1;
 
             return 0;
@@ -272,10 +283,7 @@ ScrollView {
                                 return;
                             }
 
-                            root.connService.bind(
-                                idxCombo.currentValue.toString(),
-                                param.selectedConnMode
-                            );
+                            root.connService.bind(idxCombo.currentValue.toString(), param.selectedConnMode);
                         }
                     }
                 }
@@ -366,6 +374,12 @@ ScrollView {
                             Layout.fillHeight: true
 
                             text: "发   送   指   令"
+
+                            onClicked: {
+                                if (root.heroModel !== null) {
+                                    root.heroModel.publishPerformanceModeCmd(param.heroPerformTabChoseMode);
+                                }
+                            }
                         }
                     }
                 }

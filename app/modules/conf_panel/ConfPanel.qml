@@ -160,6 +160,8 @@ Popup {
                         id: botConfig
 
                         connService: Context.connService
+                        commonStatus: Context.botStatus.commonStatus
+                        botModel: Context.botStatus.botModel
                     }
 
                     InterfaceConfig {

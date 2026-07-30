@@ -1,9 +1,11 @@
 #include "bots/hero/GHeroModel.hpp"
+#include <qtypes.h>
 
 #include "utils/TLog.hpp"
 
 #include <algorithm>
 #include <chrono>
+#include <optional>
 #include <span>
 
 #define T_LOG_TAG "[Hero Model] "
@@ -157,6 +159,47 @@ void GHeroModel::publishDeployModeCommand(bool targetMode)
 	const auto result = publish("HeroDeployModeEventCommand", payload);
 	if (!result.succeeded()) {
 		tLogWarn("Failed to publish HeroDeployModeEventCommand: {}", result.cause.toStdString());
+	}
+}
+
+void GHeroModel::publishPerformanceModeCmd(GBotCommonStatus::ShooterPerformance mode)
+{
+	using ShooterPerformance = GBotCommonStatus::ShooterPerformance;
+
+	const auto staticStatus = commonStatus().staticStatus();
+	std::optional<quint32> curMode = std::nullopt;
+
+	if (staticStatus.hasPerformanceSystemShooter()) {
+		curMode = std::make_optional<quint32>(staticStatus.performanceSystemShooter());
+	}
+
+	if (mode < ShooterPerformance::HeroMelee) {
+		tLogWarn("Invalide shooter performance mode provided: {}", static_cast<quint32>(mode));
+		return;
+	}
+
+	if (curMode == static_cast<quint32>(mode)) {
+		tLogWarn("Incoming mode same as old, ignored");
+		return;
+	}
+
+	RobotPerformanceSelectionCommand msg;
+	msg.setShooter(static_cast<quint32>(mode));
+
+	const auto payload = msg.serialize(&_serializer);
+	if (payload.isEmpty()) {
+		tLogWarn(
+			"Failed to serialize RobotPerformanceSelectionCommand: {}",
+			_serializer.lastErrorString().toStdString()
+		);
+		return;
+	}
+
+	const auto result = publish("RobotPerformanceSelectionCommand", payload);
+	if (!result.succeeded()) {
+		tLogWarn(
+			"Failed to publish RobotPerformanceSelectionCommand: {}", result.cause.toStdString()
+		);
 	}
 }
 
