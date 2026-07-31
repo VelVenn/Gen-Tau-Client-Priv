@@ -14,10 +14,15 @@ gt_register_qml_mod(
     STATIC
     IMPORTS
       TARGET Gentau::Qml::Foundation
+
       TARGET Gentau::Qml::ConfPanel::Element
+
       TARGET Gentau::Qml::Service::Conn
+
       TARGET Gentau::Qml::Bot::Common
       TARGET Gentau::Qml::Bot::Hero
+      TARGET Gentau::Qml::Bot::Infantry
+
       TARGET Gentau::Qml::Message
 )
 
@@ -26,9 +31,14 @@ target_link_libraries(${CONF_PANEL_SUB_TAR}
     Qt6::Quick
   PUBLIC
     Gentau::App::UiFoundation
+
     Gentau::App::ConfPanelElem
+    
     Gentau::App::ConnService::Plugin
+
     Gentau::App::BotsCommon::Plugin
     Gentau::App::BotsHero::Plugin
+    Gentau::App::BotsInfantry::Plugin
+
     Gentau::App::Msg::Plugin
 )

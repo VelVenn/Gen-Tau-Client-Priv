@@ -4,6 +4,7 @@
 
 #include "bots/common/GBotModel.hpp"
 #include "bots/hero/GHeroModel.hpp"
+#include "bots/infantry/GInfantryModel.hpp"
 
 #include "utils/TLog.hpp"
 
@@ -21,9 +22,9 @@ unique_ptr<GBotModel> GBotFactory::createBotModel(
 
 	idx = clientId.toUInt(&ok);
 
-	if (!ok) { 
+	if (!ok) {
 		tLogWarn("Failed to convert clientId to usigned int: {}", clientId.toStdString());
-		return nullptr; 
+		return nullptr;
 	}
 
 	tLogDebug("Recieved id: {}", idx);
@@ -40,6 +41,16 @@ unique_ptr<GBotModel> GBotFactory::createBotModel(
 										   .deployVtQItem = _deployVtQItem };
 
 			return make_unique<GHeroModel>(std::move(initPack));
+		}
+		case 3:
+		case 103:
+		case 4:
+		case 104: {
+			GInfantryModel::InitPack initPack{ .client       = _client,
+											   .curGen       = curGen,
+											   .commonStatus = commonStatus };
+
+			return make_unique<GInfantryModel>(std::move(initPack));
 		}
 		default:
 			return nullptr;

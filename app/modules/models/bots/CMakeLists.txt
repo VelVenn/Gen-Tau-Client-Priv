@@ -1,5 +1,6 @@
 add_subdirectory(common)
 add_subdirectory(hero)
+add_subdirectory(infantry)
 add_subdirectory(factory)
 
 file(

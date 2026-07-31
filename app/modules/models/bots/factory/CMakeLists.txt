@@ -26,4 +26,5 @@ target_link_libraries(${BOTS_FACTORY_TAR}
     Gentau::Utils
     Gentau::App::BotsCommon
     Gentau::App::BotsHero
+    Gentau::App::BotsInfantry
 )

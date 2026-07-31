@@ -178,7 +178,7 @@ void GHeroModel::publishPerformanceModeCmd(GBotCommonStatus::ShooterPerformance 
 		return;
 	}
 
-	if (curMode == static_cast<quint32>(mode)) {
+	if (curMode && curMode == static_cast<quint32>(mode)) {
 		tLogWarn("Incoming mode same as old, ignored");
 		return;
 	}

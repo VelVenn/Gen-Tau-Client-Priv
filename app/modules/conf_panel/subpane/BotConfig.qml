@@ -11,6 +11,7 @@ import Gentau.Service.Conn
 
 import Gentau.Bot.Common
 import Gentau.Bot.Hero
+import Gentau.Bot.Infantry
 
 ScrollView {
     id: root
@@ -24,6 +25,7 @@ ScrollView {
     readonly property robotPerformanceSelectionSync performanceMode: commonStatus.performanceSelection
 
     readonly property HeroModel heroModel: botModel as HeroModel
+    readonly property InfantryModel infModel: botModel as InfantryModel
 
     readonly property int curBotIdx: BotMeta.idStrToBotIdx(root.connService.clientId)
     readonly property int curConnMode: root.connService.connMode
@@ -102,6 +104,20 @@ ScrollView {
                 return BotCommonStatus.ShooterPerformance.HeroMelee; // 3
 
             return BotCommonStatus.ShooterPerformance.HeroRanged; // 4
+        }
+
+        readonly property int infanShooterPerformTabChoseMode: {
+            if (infanShooterPerfTab.currentIndex === 0)
+                return BotCommonStatus.ShooterPerformance.CoolFirst;
+
+            return BotCommonStatus.ShooterPerformance.BurstFirst;
+        }
+
+        readonly property int infanChassisPerformTabChoseMode: {
+            if (infanChassisPerfTab.currentIndex === 0)
+                return BotCommonStatus.ChassisPerformance.HpFirst;
+
+            return BotCommonStatus.ChassisPerformance.PowerFirst;
         }
 
         readonly property int initHeroPerfTabIdx: {
@@ -522,6 +538,15 @@ ScrollView {
                             Layout.fillHeight: true
 
                             text: "发 送 指 令"
+
+                            onClicked: {
+                                if (root.infModel !== null) {
+                                    root.infModel.publishPerformanceModeCmd(
+                                        param.infanShooterPerformTabChoseMode, 
+                                        param.infanChassisPerformTabChoseMode
+                                    );
+                                }
+                            }
                         }
                     }
                 }
