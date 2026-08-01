@@ -167,10 +167,16 @@ void GHeroModel::publishPerformanceModeCmd(GBotCommonStatus::ShooterPerformance 
 	using ShooterPerformance = GBotCommonStatus::ShooterPerformance;
 
 	const auto staticStatus = commonStatus().staticStatus();
-	std::optional<quint32> curMode = std::nullopt;
+
+	std::optional<quint32> curShooter = std::nullopt;
+	std::optional<quint32> curChassis = std::nullopt;
 
 	if (staticStatus.hasPerformanceSystemShooter()) {
-		curMode = std::make_optional<quint32>(staticStatus.performanceSystemShooter());
+		curShooter = std::make_optional<quint32>(staticStatus.performanceSystemShooter());
+	}
+
+	if (staticStatus.hasPerformanceSystemChassis()) {
+		curChassis = std::make_optional<quint32>(staticStatus.performanceSystemChassis());
 	}
 
 	if (mode < ShooterPerformance::HeroMelee) {
@@ -178,13 +184,15 @@ void GHeroModel::publishPerformanceModeCmd(GBotCommonStatus::ShooterPerformance 
 		return;
 	}
 
-	if (curMode && curMode == static_cast<quint32>(mode)) {
+	if ((curShooter && curShooter == static_cast<quint32>(mode)) &&
+		(curChassis && curChassis == static_cast<quint32>(mode))) {
 		tLogWarn("Incoming mode same as old, ignored");
 		return;
 	}
 
 	RobotPerformanceSelectionCommand msg;
 	msg.setShooter(static_cast<quint32>(mode));
+	msg.setChassis(static_cast<quint32>(mode));
 
 	const auto payload = msg.serialize(&_serializer);
 	if (payload.isEmpty()) {
