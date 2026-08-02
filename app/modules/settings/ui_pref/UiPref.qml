@@ -11,6 +11,7 @@ QtObject {
     property bool showSpdAndAmmo: true
     
     property bool windowedMode: true
+    property bool vtUpsideDown: false
 
     readonly property QtObject _storage: Settings {
         category: "uiPref"
@@ -20,5 +21,6 @@ QtObject {
         property alias showSpdAndAmmo: root.showSpdAndAmmo
 
         property alias windowedMode: root.windowedMode
+        property alias vtUpsideDown: root.vtUpsideDown
     }
 }

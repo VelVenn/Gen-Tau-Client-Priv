@@ -103,6 +103,24 @@ ScrollView {
             }
         }
 
+        RectCheckBox {
+            id: vtUpsideDownChecker
+
+            text: "垂直翻转图传画面"
+
+            font.pixelSize: 15
+
+            spacing: 20
+
+            checked: root.preferences.vtUpsideDown
+
+            onToggled: {
+                if (root.preferences.vtUpsideDown !== checked) {
+                    root.preferences.vtUpsideDown = checked;
+                }
+            }
+        }
+
         RowLayout {
             Item {
                 Layout.preferredWidth: 3

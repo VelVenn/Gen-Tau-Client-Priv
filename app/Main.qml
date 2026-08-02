@@ -56,6 +56,8 @@ Window {
         anchors.centerIn: parent
         width: parent.width
         height: parent.height
+
+        rotation: UiPref.vtUpsideDown ? 180 : 0
     }
 
     BotHud {
