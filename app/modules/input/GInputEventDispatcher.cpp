@@ -230,7 +230,9 @@ void GInputEventDispatcher::publishKeyboardMouseControl()
 		return;
 	}
 
-	auto result = _client.publish(_curGen.load(), "KeyboardMouseControl", payload);
+	auto result = _client.publish(
+		_curGen.load(), "KeyboardMouseControl", payload, TMqttClient::QoS::AT_MOST_ONCE
+	);
 
 	// if (!result.succeeded()) {
 	// 	tLogError("Failed to publish KeyboardMouseControl message: {}", result.cause.toStdString());
