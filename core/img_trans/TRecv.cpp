@@ -166,10 +166,12 @@ i32 TRecv::bindV4(u16 port, const char* ip)
 	auto newSockFd = ::socket(AF_INET, SOCK_DGRAM, 0);
 
 	if (newSockFd < 0) {
+		const int errorCode = errno;
 		tImgTransLogError(
-			"Failed to create new socket, error: {}", error_code(errno, system_category()).message()
+			"Failed to create new socket, error: {}",
+			error_code(errorCode, system_category()).message()
 		);
-		return errno;
+		return errorCode;
 	}
 
 	sockaddr_in newAddr{};
@@ -186,17 +188,32 @@ i32 TRecv::bindV4(u16 port, const char* ip)
 	newAddr.sin_port        = htons(v4Addr->port);
 
 	if (::bind(newSockFd, reinterpret_cast<sockaddr*>(&newAddr), sizeof(newAddr)) < 0) {
+		const int errorCode = errno;
 		tImgTransLogError(
 			"Failed to bind socket to ip: {}, error: {}",
 			v4Addr->toString(),
-			error_code(errno, system_category()).message()
+			error_code(errorCode, system_category()).message()
 		);
 		::close(newSockFd);
-		return errno;
+		return errorCode;
+	}
+
+	socklen_t newAddrLen = sizeof(newAddr);
+
+	if (::getsockname(newSockFd, reinterpret_cast<sockaddr*>(&newAddr), &newAddrLen) < 0) {
+		const int errorCode = errno;
+		tImgTransLogError(
+			"Failed to get socket name, error: {}",
+			error_code(errorCode, system_category()).message()
+		);
+		::close(newSockFd);
+		return errorCode;
 	}
 
 	updSock    = newSockFd;
 	listenAddr = newAddr;
+
+	v4Addr->port = ntohs(newAddr.sin_port);  // Update port in case it was 0 (ephemeral port)
 
 	tImgTransLogInfo("New socket created, bound to {}", v4Addr->toString());
 

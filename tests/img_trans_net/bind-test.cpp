@@ -36,7 +36,7 @@ int main()
 
         while (isRunning.load()) {
             tLogDebug("Rebind now ...");
-            recv->bindV4(8888, "127.0.0.1");
+            recv->bindV4(0, "127.0.0.1");
             recv->start();
 
             this_thread::sleep_for(500ms);

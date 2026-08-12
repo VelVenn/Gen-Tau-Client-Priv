@@ -32,14 +32,11 @@ class TRecv
 
 		V4Addr(u32 _ipNetworkOrder, u16 _port) : ip(_ipNetworkOrder), port(_port) {}
 
-		bool isValid() const { return ip != 0 && port != 0; }
-
 		std::string toString() const noexcept
 		{
-			if (!isValid()) { return "Invalid IP"; }
-
 			auto ipStrOpt = TRecv::V4Addr::ipToStr(ip);
 			if (!ipStrOpt.has_value()) { return "Invalid IP"; }
+
 			return std::move(ipStrOpt).value() + ":" + std::to_string(port);
 		}
 
@@ -47,6 +44,7 @@ class TRecv
 		{
 			auto ipOpt = strToIp(ipStr);
 			if (!ipOpt.has_value()) { return std::nullopt; }
+
 			return V4Addr(ipOpt.value(), port);
 		}
 
