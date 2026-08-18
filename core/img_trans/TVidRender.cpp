@@ -582,6 +582,7 @@ bool TVidRender::tryPushFrame(TFramePool::FrameData&& frame, TReassemblyPasskey)
 		// Push failure is not a critical error, just skip it and wait for next frame, avoiding log spam.
 	}
 
+	delete frameDataPtr;
 	return false;
 }
 
