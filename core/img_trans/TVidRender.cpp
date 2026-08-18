@@ -584,7 +584,6 @@ bool TVidRender::tryPushFrame(TFramePool::FrameData&& frame, TReassemblyPasskey)
 		delete frameDataPtr;
 	}
 
-	delete frameDataPtr;
 	return false;
 }
 
