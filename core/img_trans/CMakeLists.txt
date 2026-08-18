@@ -6,7 +6,7 @@ gt_register_mod(
   SRC ${SRC_FILES}
   DEPS
     utils
-    readerwriterqueue
+    concurrentqueue
 
     PRIVATE
       conf

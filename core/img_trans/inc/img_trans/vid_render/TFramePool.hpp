@@ -2,12 +2,13 @@
 
 #include "utils/TTypeRedef.hpp"
 
-#include "readerwritercircularbuffer.h"
+#include "concurrentqueue.h"
 
 #include <array>
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <new>
 #include <optional>
 
 namespace gentau {
@@ -21,7 +22,7 @@ class [[gnu::aligned(64)]] TFramePool
 	using SharedPtr   = std::shared_ptr<TFramePool>;
 	using Frame       = std::array<u8, slotLen>;
 	using Pool        = std::array<Frame, poolSize>;
-	using FreeIdxList = moodycamel::BlockingReaderWriterCircularBuffer<u32>;
+	using FreeIdxList = moodycamel::ConcurrentQueue<u32>;
 
   public:
 	class FrameData
@@ -111,7 +112,7 @@ class [[gnu::aligned(64)]] TFramePool
 	{
 		if (idx >= poolSize) { return false; }
 
-		return freeIdxList.try_enqueue(idx);
+		return freeIdxList.enqueue(idx);
 	}
 
   public:
@@ -119,7 +120,9 @@ class [[gnu::aligned(64)]] TFramePool
 	{
 		std::memset(poolData.data(), 0, sizeof(poolData));
 
-		for (u32 i = 0; i < poolSize; i++) { freeIdxList.try_enqueue(i); }
+		for (u32 i = 0; i < poolSize; i++) {
+			if (!freeIdxList.enqueue(i)) { throw std::bad_alloc{}; }
+		}
 	}
 
 	~TFramePool() = default;

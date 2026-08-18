@@ -81,6 +81,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(readerwriterqueue)
 
 FetchContent_Declare(
+  concurrentqueue
+  GIT_REPOSITORY https://github.com/cameron314/concurrentqueue.git
+  GIT_TAG v1.0.5
+)
+FetchContent_MakeAvailable(concurrentqueue)
+
+FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   GIT_TAG 12.1.0
