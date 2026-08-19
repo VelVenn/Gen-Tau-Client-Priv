@@ -121,7 +121,7 @@ bool TVidRender::initBusThread()
 	promise<void> threadErrPassThru;
 	auto          passThruFuture = threadErrPassThru.get_future();
 
-	// lamba捕获变量时会默认将其视为const成员
+	//  lambda 的 operator() 默认是 const；为调用按值捕获的 promise 的非 const 成员函数，需要 mutable
 	busThread = jthread([this, passThru = std::move(threadErrPassThru)](stop_token sToken) mutable {
 		g_autoptr(GstBus) bus = gst_element_get_bus(fixedPipe);
 
